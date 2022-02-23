@@ -1,4 +1,4 @@
-{
+export const Config = {
     world: {
         //name: "World",
         //map_path: "/maps/map1.png",

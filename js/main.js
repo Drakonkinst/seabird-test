@@ -1,22 +1,11 @@
-import {Simulation} from "./simulation.js";
-
-const CONFIG_PATH = "/config.json5";
-let Instance = null;
-
-function loadConfig(path, callback) {
-    let configRequest = new XMLHttpRequest();
-    configRequest.onload = function() {
-        let jsonData = JSON5.parse(this.responseText);
-        callback(jsonData);
-    }
-    configRequest.open("get", path, true);
-    configRequest.send();
-}
+import { Simulation } from "./simulation.js";
+import { Config } from "../config.js"
 
 window.onload = function() {
-    loadConfig(CONFIG_PATH, config => {
-        Instance = new Simulation(config);
-    });
+    if(Config == null) {
+        console.warn("No Config object found!");
+    }
     
+    const Sim = new Simulation(Config);
     console.log("Page loaded!");
 };
