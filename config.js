@@ -2,17 +2,19 @@ export const Config = {
     world: {
         //name: "World",
         //map_path: "/maps/map1.png",
+        startingZoom: -5,
+        startingPos: [750, 750],
         birds: {
             "bird1": 5,
-            "bird2": 5
+            "bird2": 5,
+            "bird3": 5
         },
         preyPatches: 10
     },
     draw: {
-        look_ahead: true,
+        lookAhead: true,
         sight: true
     },
-    
     birds: {
         "bird1": {
             maxSpeed: 1,
@@ -22,6 +24,11 @@ export const Config = {
         "bird2": {
             maxSpeed: 1.5,
             color: "#00ff00",
+            sight: 50
+        },
+        "bird3": {
+            maxSpeed: 1,
+            color: "#ff00ff",
             sight: 100
         }
     },

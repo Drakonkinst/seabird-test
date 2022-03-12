@@ -6,6 +6,11 @@ const CANVAS_MARGIN = 0.0;
 const CANVAS_RATIO = 1.0 - CANVAS_MARGIN * 2.0;
 const ZOOM_FACTOR = 0.1;
 
+const TEXT_PADDING_X = 10;
+const TEXT_PADDING_Y = 16;
+const TEXT_HEIGHT = 16;
+const TEXT_SIZE = 14;
+
 const Color = {
     OCEAN: "#1da2d8",
     DEEP_OCEAN: "#064273",
@@ -38,7 +43,7 @@ const drawBird = (() => {
         p.vertex(x + HALF_SIZE * Math.cos(theta3), y + HALF_SIZE * Math.sin(theta3));
         p.endShape(p.CLOSE);
         
-        if(config.draw.look_ahead) {
+        if(config.draw.lookAhead) {
             p.stroke(Color.LOOK_AHEAD);
             const length = bird.getMaxSpeed() * Bird.getLookAheadMultiplier();
             const endX = x + length * Math.cos(theta1);
@@ -56,12 +61,13 @@ const drawBird = (() => {
 })();
 
 export class Graphics {
-    constructor(config, world, p5Sketch) {
+    constructor(config, sim, p5Sketch) {
         if(instance != null) {
             throw new Error("Cannot have two Graphics objects at once!");
         }
         this.config = config;
-        this.world = world;
+        this.sim = sim;
+        this.world = this.sim.world;
         this.sketch = p5Sketch;
         
         this.panX = 0;
@@ -72,12 +78,23 @@ export class Graphics {
         
         instance = this;
         p = p5Sketch;
+        
+        if(this.config.world.startingZoom != null) {
+            this.setZoomLevel(this.config.world.startingZoom);
+        }
+
+        if(this.config.world.startingPos != null) {
+            let posData = this.config.world.startingPos;
+            this.panTo(posData[0], posData[1]);
+        }
+
     }
     
     /* Drawing */
     
     reset() {
         p.stroke(0);
+        p.noSmooth();
     }
     
     setup() {
@@ -95,6 +112,8 @@ export class Graphics {
         
         this.drawPreyPatches();
         this.drawBirds();
+        
+        this.drawUI();
     }
     
     /* Drawing Objects */
@@ -125,6 +144,62 @@ export class Graphics {
     }
     
     /* Drawing UI */
+    drawUI() {
+        p.scale(1 / this.zoom);
+        p.translate(-this.panX, -this.panY);
+        p.fill(255);
+        p.noStroke();
+        p.textSize(TEXT_SIZE);
+        
+        let lines = {
+            "topleft": 0,
+            "botleft": 0,
+            "topright": 0,
+            "botright": 0
+        };
+        
+        // Top left: Simulation Info
+        this.writeText("Simulation Step: " + this.sim.step, "topleft", lines);
+        this.writeText("Paused: " + (this.sim.paused ? "Yes" : "No"), "topleft", lines);
+        
+        // Bottom left: Mouse Info
+        this.writeText("Mouse Position: " + this.getMousePos().toString(true), "botleft", lines);
+        this.writeText("Pan: (" + Math.round(-this.panX) + ", " + Math.round(-this.panY) + ")", "botleft", lines);
+        this.writeText("Zoom: " + this.zoomLevel, "botleft", lines);
+        
+        // Top right: Controls
+        this.writeText("SPACE: Toggle Pause", "topright", lines);
+        
+        // Bottom right: Target Info
+    }
+    
+    writeText(text, corner, lines) {
+        let x = null;
+        let y = null;
+        
+        if(corner == "topleft") {
+            p.textAlign(p.LEFT);
+            x = TEXT_PADDING_X;
+            y = TEXT_PADDING_Y + TEXT_HEIGHT * lines["topleft"]; 
+        } else if(corner == "botleft") {
+            p.textAlign(p.LEFT);
+            x = TEXT_PADDING_X;
+            y = p.windowHeight - TEXT_PADDING_Y - TEXT_HEIGHT * lines["botleft"];
+        } else if(corner == "topright") {
+            p.textAlign(p.RIGHT);
+            x = p.windowWidth - TEXT_PADDING_X;
+            y = TEXT_PADDING_Y + TEXT_HEIGHT * lines["topright"]; 
+        } else if(corner == "botright") {
+            p.textAlign(p.RIGHT);
+            x = p.windowWidth - TEXT_PADDING_X;
+            y = p.windowHeight - TEXT_PADDING_Y - TEXT_HEIGHT * lines["botright"];
+        }
+        
+        if(x != null && y != null) {
+            ++lines[corner];
+            p.text(text, x, y);
+        }
+    }
     
     /* Helpers */
     
@@ -136,12 +211,12 @@ export class Graphics {
     panTo(a, b) {
         if(b == null) {
             // Treat 'a' as a vector
-            this.panX = (this.world.width / 2) - (a.x * this.zoom);
-            this.panY = (this.world.height / 2) - (a.y * this.zoom);
+            this.panX = (p.windowWidth / 2) - (a.x * this.zoom);
+            this.panY = (p.windowHeight / 2) - (a.y * this.zoom);
         } else {
             // Treat 'a' and 'b' as x and y
-            this.panX = (this.world.width / 2) - (a * this.zoom);
-            this.panY = (this.world.height / 2) - (b * this.zoom);
+            this.panX = (p.windowWidth / 2) - (a * this.zoom);
+            this.panY = (p.windowHeight / 2) - (b * this.zoom);
         }
     }
     

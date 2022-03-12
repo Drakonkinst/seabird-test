@@ -17,6 +17,7 @@ export class Simulation {
             preyPatches: []
         }
         this.metrics = {
+            // The times when birds of each species find a prey patch
             success: {}
         }
         this.step = 0;
@@ -85,8 +86,8 @@ export class Simulation {
     setupSketch() {
         let self = this;
         this.sketch = new p5(function(p) {
-            self.graphics = new Graphics(self.config, self.world, p);
-            self.input = new InputHandler(self.config, self.world, self.graphics);
+            self.graphics = new Graphics(self.config, self, p);
+            self.input = new InputHandler(self.config, self, self.graphics);
             p.setup = () => self.graphics.setup();
             p.draw = () => self.graphics.draw();
             p.windowResized = () => self.input.onWindowResize();
@@ -95,6 +96,7 @@ export class Simulation {
             p.mousePressed = () => self.input.onMousePress();
             p.mouseReleased = () => self.input.onMouseRelease();
             p.mouseDragged = () => self.input.onMouseDrag();
+            p.keyPressed = () => self.input.onKeyPress(event.keyCode);
         });
     }
     
