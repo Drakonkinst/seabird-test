@@ -8,8 +8,8 @@ const ZOOM_FACTOR = 0.1;
 
 const TEXT_PADDING_X = 10;
 const TEXT_PADDING_Y = 16;
-const TEXT_HEIGHT = 16;
-const TEXT_SIZE = 14;
+const TEXT_HEIGHT = 18;
+const TEXT_SIZE = 16;
 
 const Color = {
     OCEAN: "#1da2d8",
@@ -149,6 +149,7 @@ export class Graphics {
         p.translate(-this.panX, -this.panY);
         p.fill(255);
         p.noStroke();
+        p.textFont("Courier New");
         p.textSize(TEXT_SIZE);
         
         let lines = {
@@ -161,6 +162,7 @@ export class Graphics {
         // Top left: Simulation Info
         this.writeText("Simulation Step: " + this.sim.step, "topleft", lines);
         this.writeText("Paused: " + (this.sim.paused ? "Yes" : "No"), "topleft", lines);
+        this.writeText("Speed: " + this.sim.updatesPerStep, "topleft", lines);
         
         // Bottom left: Mouse Info
         this.writeText("Mouse Position: " + this.getMousePos().toString(true), "botleft", lines);
@@ -169,6 +171,8 @@ export class Graphics {
         
         // Top right: Controls
         this.writeText("SPACE: Toggle Pause", "topright", lines);
+        this.writeText("[/]: Increase/Decrease Speed", "topright", lines);
+        this.writeText("S: Toggle Sight", "topright", lines);
         
         // Bottom right: Target Info
     }

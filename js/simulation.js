@@ -22,6 +22,8 @@ export class Simulation {
         }
         this.step = 0;
         this.paused = false;
+        this.stepsPerUpdate = 1;
+        
         this.setupSketch();
         
         this.spawnPreyPatches();
@@ -72,7 +74,14 @@ export class Simulation {
             return;
         }
         
+        for(let i = 0; i < this.stepsPerUpdate; ++i) {
+            this.doStep();
+        }
+    }
+    
+    doStep() {
         ++this.step;
+        
         for(let bird of this.world.birds) {
             bird.update();
         }

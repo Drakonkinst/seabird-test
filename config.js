@@ -5,9 +5,9 @@ export const Config = {
         startingZoom: -5,
         startingPos: [750, 750],
         birds: {
-            "bird1": 5,
-            "bird2": 5,
-            "bird3": 5
+            "bird1": 10,
+            "bird2": 10,
+            "bird3": 10
         },
         preyPatches: 10
     },
