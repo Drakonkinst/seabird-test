@@ -5,12 +5,14 @@ import {
     getCardinalDirection,
     toRadians,
     inBounds,
-    randRange
+    randRange,
+    withinDistance
 } from "./utils.js";
 
 // Constants for boundary avoidance
 const AVOID_ANGLE = toRadians(45);
 const LOOK_AHEAD_MULTIPLIER = 60;
+const SUCCESS_DISTANCE = 5.0;
 
 export class Bird {
     constructor(sim, species, x = 0, y = 0) {
@@ -26,6 +28,8 @@ export class Bird {
         this.steering = new Steering(this);
         this.facing = 0.0;
         this.refreshFacing();
+        
+        this.successStep = -1;
     }
     
     update(world) {
@@ -41,9 +45,48 @@ export class Bird {
     }
     
     doBehavior() {
+        // Simple straightforward (and non-configurable) AI for now
+        // We can move this to task-based modules later
+        
+        if(this.successStep > 0) {
+            // Do nothing
+            return;
+        }
+        
         let isAvoiding = this.avoidBoundaries();
         if(!isAvoiding) {
-            this.steering.wander();
+            // Check for prey patches within sight
+            let closestPreyPatch = null;
+            let closestDistanceSq = Number.MAX_VALUE;
+            for(let preyPatch of this.sim.world.preyPatches) {
+                let minDistance = this.getSight() + preyPatch.radius;
+                if(withinDistance(this.pos, preyPatch.pos, minDistance)) {
+                    // Can see this prey patch
+                    let distSq = this.pos.distanceSquared(preyPatch.pos);
+                    if(distSq < closestDistanceSq) {
+                        // Closer than any previous
+                        closestPreyPatch = preyPatch;
+                        closestDistanceSq = distSq;
+                    }
+                }
+            }
+            
+            if(closestPreyPatch != null) {
+                // Seek with automatic slowing
+                this.steering.seek(closestPreyPatch.pos);
+                if(closestDistanceSq <= SUCCESS_DISTANCE) {
+                    // Record current simulation step
+                    this.successStep = this.sim.step;
+                    this.sim.registerSuccess(this.species, this.successStep);
+                    
+                    // Stop moving
+                    this.velocity.setZero();
+                    this.steering.reset();
+                }
+            } else {
+                // Wander normally
+                this.steering.wander();
+            }
         }
     }
     
@@ -63,7 +106,8 @@ export class Bird {
             */
            
             // Smoother boundary avoidance
-            let newTarget = getCardinalDirection(this.velocity).copy()
+            // Can optionally wrap this in cardinal direction
+            let newTarget = this.velocity.copy()
                 .negate()
                 .rotate(rotationOffset)
                 .scaleToMagnitude(this.velocity.magnitude())

@@ -17,7 +17,7 @@ let p = null;
 let instance = null;
 
 const drawBird = (() => {
-    const SIZE = 30;
+    const SIZE = 15;
     const HALF_SIZE = SIZE / 2;
     const ANGLE = toRadians(120);
     
@@ -93,6 +93,7 @@ export class Graphics {
         p.fill(Color.OCEAN);
         p.rect(0, 0, this.world.width, this.world.height);
         
+        this.drawPreyPatches();
         this.drawBirds();
     }
     
@@ -107,6 +108,20 @@ export class Graphics {
     
     drawBird(bird) {
         drawBird(p, bird, this.config);
+    }
+    
+    drawPreyPatches() {
+        p.strokeWeight(1);
+        p.stroke(0);
+        p.noFill();
+
+        for(let preyPatch of this.world.preyPatches) {
+            this.drawPreyPatch(preyPatch);
+        }
+    }
+    
+    drawPreyPatch(preyPatch) {
+        p.circle(preyPatch.pos.x, preyPatch.pos.y, preyPatch.radius);
     }
     
     /* Drawing UI */

@@ -36,3 +36,17 @@ export function inBounds(x, y, world) {
 export function randRange(min, max) {
     return Math.random() * (max - min) + min;
 }
+
+export function withinDistance(vectorA, vectorB, distance) {
+    return Math.abs(vectorA.x - vectorB.x) <= distance
+        && Math.abs(vectorA.y - vectorB.y) <= distance
+        && vectorA.distanceSquared(vectorB) <= distance * distance;
+}
+
+export function mean(arr) {
+    let sum = 0.0;
+    for(let item of arr) {
+        sum += item;
+    }
+    return sum / arr.length;
+}

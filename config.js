@@ -5,11 +5,12 @@ export const Config = {
         birds: {
             "bird1": 5,
             "bird2": 5
-        }
+        },
+        preyPatches: 10
     },
     draw: {
-        look_ahead: false,
-        sight: false
+        look_ahead: true,
+        sight: true
     },
     
     birds: {
@@ -19,7 +20,7 @@ export const Config = {
             sight: 50
         },
         "bird2": {
-            maxSpeed: 2,
+            maxSpeed: 1.5,
             color: "#00ff00",
             sight: 100
         }
