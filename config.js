@@ -9,7 +9,7 @@ export const Config = {
             "bird2": 10,
             "bird3": 10
         },
-        preyPatches: 10
+        preyPatches: 20
     },
     draw: {
         lookAhead: true,
@@ -19,17 +19,17 @@ export const Config = {
         "bird1": {
             maxSpeed: 1,
             color: "#ff0000",
-            sight: 50
+            sight: 25
         },
         "bird2": {
             maxSpeed: 1.5,
             color: "#00ff00",
-            sight: 50
+            sight: 25
         },
         "bird3": {
             maxSpeed: 1,
             color: "#ff00ff",
-            sight: 100
+            sight: 50
         }
     },
 }

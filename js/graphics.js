@@ -55,7 +55,7 @@ const drawBird = (() => {
             p.stroke(Color.SIGHT);
             p.noFill();
             const sight = bird.getSight();
-            p.circle(x, y, sight);
+            p.circle(x, y, sight * 2);
         }
     };
 })();
@@ -140,7 +140,7 @@ export class Graphics {
     }
     
     drawPreyPatch(preyPatch) {
-        p.circle(preyPatch.pos.x, preyPatch.pos.y, preyPatch.radius);
+        p.circle(preyPatch.pos.x, preyPatch.pos.y, preyPatch.radius * 2);
     }
     
     /* Drawing UI */
