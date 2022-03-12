@@ -1,13 +1,16 @@
 import { Graphics } from "./graphics.js";
 import { inBounds } from "./utils.js";
 
-const MAX_ZOOM_LEVEL = 5;
-const MIN_ZOOM_LEVEL = -5;
+const MAX_ZOOM_LEVEL = 8;
+const MIN_ZOOM_LEVEL = -8;
+
+const SPACEBAR = 32;
 
 export class InputHandler {
-    constructor(config, world, graphics) {
+    constructor(config, sim, graphics) {
         this.config = config;
-        this.world = world;
+        this.sim = sim;
+        this.world = this.sim.world;
         this.graphics = graphics;
         
         this.xOffset = 0;
@@ -15,6 +18,13 @@ export class InputHandler {
     }
     
     /* Event Listeners */
+    
+    onKeyPress(keyCode) {
+        if(keyCode == SPACEBAR) {
+            // Toggle pause
+            this.sim.paused = !this.sim.paused;
+        }
+    }
 
     onMouseClick() {
 
