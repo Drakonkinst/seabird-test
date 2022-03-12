@@ -162,7 +162,7 @@ export class Graphics {
         // Top left: Simulation Info
         this.writeText("Simulation Step: " + this.sim.step, "topleft", lines);
         this.writeText("Paused: " + (this.sim.paused ? "Yes" : "No"), "topleft", lines);
-        this.writeText("Speed: " + this.sim.updatesPerStep, "topleft", lines);
+        this.writeText("Speed: " + this.sim.stepsPerUpdate, "topleft", lines);
         
         // Bottom left: Mouse Info
         this.writeText("Mouse Position: " + this.getMousePos().toString(true), "botleft", lines);
