@@ -1,5 +1,7 @@
 import { Graphics } from "./graphics.js";
-import { inBounds } from "./utils.js";
+import { inBounds, withinDistance } from "./utils.js";
+
+const MAX_SELECT_DISTANCE = 75;
 
 const MAX_ZOOM_LEVEL = 8;
 const MIN_ZOOM_LEVEL = -8;
@@ -73,7 +75,23 @@ export class InputHandler {
     }
 
     onMouseClick() {
-
+        // Look for bird
+        const mousePos = this.graphics.getMousePos();
+        let closestBird = null;
+        let closestDistSq = MAX_SELECT_DISTANCE;
+        for(let bird of this.world.birds) {
+            let distSq = mousePos.distanceSquared(bird.pos);
+            if(distSq < closestDistSq) {
+                closestBird = bird;
+                closestDistSq = distSq;
+            }
+        }
+        
+        if(closestBird != null) {
+            this.sim.selectedBird = closestBird;
+        } else {
+            this.sim.selectedBird = null;
+        }
     }
 
     onMousePress() {

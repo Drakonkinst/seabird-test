@@ -20,9 +20,12 @@ export class Simulation {
             // The times when birds of each species find a prey patch
             success: {}
         }
+        
         this.step = 0;
         this.paused = false;
         this.stepsPerUpdate = 1;
+        
+        this.selectedBird = null;
         
         this.setupSketch();
         

@@ -15,7 +15,8 @@ const Color = {
     OCEAN: "#1da2d8",
     DEEP_OCEAN: "#064273",
     LOOK_AHEAD: "#ff00ff",
-    SIGHT: "#0000ff"
+    SIGHT: "#0000ff",
+    SELECTED: "#ffd700"
 };
 
 let p = null;
@@ -26,7 +27,7 @@ const drawBird = (() => {
     const HALF_SIZE = SIZE / 2;
     const ANGLE = toRadians(120);
     
-    return function(p, bird, config) {
+    return function(p, bird, config, sim) {
         const theta1 = bird.facing;
         const theta2 = theta1 + ANGLE;
         const theta3 = theta1 - ANGLE;
@@ -34,7 +35,16 @@ const drawBird = (() => {
         const x = bird.pos.x;
         const y = bird.pos.y;
         
-        p.stroke(0);
+        const isSelected = sim.selectedBird != null && bird.id == sim.selectedBird.id;
+        if(isSelected) {
+            p.strokeWeight(1);
+            p.stroke(Color.SELECTED);
+        } else {
+            p.strokeWeight(0.5);
+            p.stroke(0);
+        }
+        
+        
         p.fill(bird.getColor());
         p.beginShape();
         p.vertex(x, y);
@@ -103,6 +113,11 @@ export class Graphics {
     
     draw() {
         this.reset();
+        
+        if(this.sim.selectedBird != null) {
+            this.panTo(this.sim.selectedBird.pos);
+        }
+        
         p.translate(this.panX, this.panY);
         p.clear();
         p.scale(this.zoom);
@@ -118,15 +133,13 @@ export class Graphics {
     
     /* Drawing Objects */
     drawBirds() {
-        p.strokeWeight(0.5);
-        
         for(let bird of this.world.birds) {
             this.drawBird(bird);
         }
     }
     
     drawBird(bird) {
-        drawBird(p, bird, this.config);
+        drawBird(p, bird, this.config, this.sim);
     }
     
     drawPreyPatches() {
@@ -175,9 +188,32 @@ export class Graphics {
         this.writeText("S: Toggle Sight", "topright", lines);
         
         // Bottom right: Target Info
+        if(this.sim.selectedBird != null) {
+            this.writeBirdInfo(this.sim.selectedBird, lines);
+        }
+    }
+    
+    writeBirdInfo(bird, lines) {
+        this.writeText([
+            "Species: " + bird.species,
+            "Max Speed: " + this.sim.getBirdInfo(bird.species).maxSpeed,
+            "Sight Range: " + this.sim.getBirdInfo(bird.species).sight,
+            "",
+            "Position: " + bird.pos.toString(true),
+            "Speed: " + Math.round(bird.velocity.magnitude() * 100) / 100,
+            "Success: " + (bird.successStep >= 0),
+            "Id: " + bird.id
+        ], "botright", lines);
     }
     
     writeText(text, corner, lines) {
+        if(Array.isArray(text)) {
+            for(let i = text.length - 1; i >= 0; --i) {
+                this.writeText(text[i], corner, lines);
+            }
+            return;
+        }
+        
         let x = null;
         let y = null;
         
