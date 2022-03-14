@@ -133,7 +133,7 @@ export class State {
     static nameOf(state) {
         if(state instanceof SeekState) {
             return "Seeking";
-        } else if(state instanceof WanderState) {
+        } else if(state instanceof SearchState) {
             return "Searching";
         } else if(state instanceof RestState) {
             return "Resting";
@@ -164,14 +164,12 @@ class SeekState extends State {
     }
 }
 
-class WanderState extends State {
+class SearchState extends State {
     constructor() {
         super();
     }
     
     execute(bird) {
-        bird.steering.wander();
-        
         // Check for prey patches within sight
         let closestPreyPatch = null;
         let closestDistanceSq = Number.MAX_VALUE;
@@ -187,12 +185,24 @@ class WanderState extends State {
                 }
             }
         }
-        
+
         if(closestPreyPatch != null) {
             return new SeekState(closestPreyPatch);
         }
-        
+
         return this;
+    }
+}
+
+// Search state where the bird wanders randomly
+class WanderState extends SearchState {
+    constructor() {
+        super();
+    }
+    
+    execute(bird) {
+        bird.steering.wander();
+        return super.execute(bird);
     }
 }
 
