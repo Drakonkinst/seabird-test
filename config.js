@@ -15,6 +15,10 @@ export const Config = {
         lookAhead: true,
         sight: true
     },
+    preyPatch: {
+        initialSize: 32,
+        increasePerBird: 5
+    },
     birds: {
         "red": {
             maxSpeed: 1,

@@ -68,7 +68,7 @@ export class Simulation {
     addPreyPatch() {
         let x = PREY_PATCH_MARGIN + Math.random() * (this.world.width - 2 * PREY_PATCH_MARGIN);
         let y = PREY_PATCH_MARGIN + Math.random() * (this.world.height - 2 * PREY_PATCH_MARGIN);
-        let preyPatch = new PreyPatch(this, x, y);
+        let preyPatch = new PreyPatch(this, x, y, this.config.preyPatch.initalSize);
         //console.log("Created prey patch " + preyPatch.id);
         this.world.preyPatches.push(preyPatch);
     }
