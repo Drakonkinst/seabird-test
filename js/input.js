@@ -68,6 +68,9 @@ export class InputHandler {
                     this.config.draw.lookAhead = !this.config.draw.lookAhead;
                     this.config.draw.sight = this.config.draw.lookAhead;
                     break;
+                case 'R':
+                    this.sim.resetSimulation();
+                    break;
                 default:
                     console.log(letter);
             }

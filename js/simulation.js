@@ -11,30 +11,33 @@ export class Simulation {
         this.config = config;
         this.graphics = null;
         this.input = null;
-        this.world = {
-            // Should be set by map image and pixel density later
-            width: 1500,
-            height: 1500,
-            birds: [],
-            preyPatches: []
-        }
-        this.metrics = {
-            // The times when birds of each species find a prey patch
-            success: {}
-        }
+        this.world = {};
+        this.metrics = {};
         
+        this.onSimulationStart();
+        this.setupSketch();
+        this.setUpdateInterval(10);
+    }
+    
+    onSimulationStart() {
+        // Should be set by map image and pixel density later
+        this.world.width = 1500;
+        this.world.height = 1500;
+        this.world.birds = [];
+        this.world.preyPatches = [];
+        
+        // The times when birds of each species find a prey patch
+        this.metrics.success = {};
+        
+        this.stepsPerUpdate = 1;
+
         this.step = 0;
         this.paused = false;
-        this.stepsPerUpdate = 1;
-        
         this.selectedBird = null;
-        
-        this.setupSketch();
-        
+
+        PreyPatch.resetNames();
         this.spawnPreyPatches();
         this.spawnBirds();
-        
-        this.setUpdateInterval(10);
     }
     
     spawnBirds() {
@@ -148,7 +151,7 @@ export class Simulation {
         let preyPatchCount = {};
         let preyPatchFreq = {};
         for(let preyPatch of this.world.preyPatches) {
-            preyPatchCount["" + preyPatch.name] = preyPatch.numBirds;
+            preyPatchCount[preyPatch.name] = preyPatch.numBirds;
             if(!preyPatchFreq.hasOwnProperty(preyPatch.numBirds)) {
                 preyPatchFreq[preyPatch.numBirds] = 0;
             }
@@ -156,5 +159,9 @@ export class Simulation {
         }
         console.log(preyPatchCount);
         console.log(preyPatchFreq);
+    }
+    
+    resetSimulation() {
+        this.onSimulationStart();
     }
 }

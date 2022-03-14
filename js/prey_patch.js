@@ -15,6 +15,10 @@ export class PreyPatch {
         this.numBirds = 0;
     }
     
+    static resetNames() {
+        nextName = 1;
+    }
+    
     onBirdArrive() {
         ++this.numBirds;
         this.radius += EXPANSION_PER_BIRD;

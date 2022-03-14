@@ -185,9 +185,12 @@ export class Graphics {
         this.writeText("Zoom: " + this.zoomLevel, "botleft", lines);
         
         // Top right: Controls
-        this.writeText("SPACE: Toggle Pause", "topright", lines);
-        this.writeText("[/]: Increase/Decrease Speed", "topright", lines);
-        this.writeText("S: Toggle Sight", "topright", lines);
+        this.writeText([
+            "SPACE: Toggle Pause",
+            "[/]: Increase/Decrease Speed",
+            "S: Toggle Sight",
+            "R: Reset Simulation",
+        ], "topright", lines);
         
         // Bottom right: Target Info
         if(this.sim.selectedBird != null) {
@@ -210,9 +213,16 @@ export class Graphics {
     
     writeText(text, corner, lines) {
         if(Array.isArray(text)) {
-            for(let i = text.length - 1; i >= 0; --i) {
-                this.writeText(text[i], corner, lines);
+            if(corner == "botleft" || corner == "botright") {
+                for(let i = text.length - 1; i >= 0; --i) {
+                    this.writeText(text[i], corner, lines);
+                }
+            } else {
+                for(let i = 0; i < text.length; ++i) {
+                    this.writeText(text[i], corner, lines);
+                }
             }
+            
             return;
         }
         
