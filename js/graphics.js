@@ -125,8 +125,8 @@ export class Graphics {
         p.fill(Color.OCEAN);
         p.rect(0, 0, this.world.width, this.world.height);
         
-        this.drawPreyPatches();
         this.drawBirds();
+        this.drawPreyPatches();
         
         this.drawUI();
     }
