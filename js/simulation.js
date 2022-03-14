@@ -4,6 +4,8 @@ import { InputHandler } from "./input.js";
 import { PreyPatch } from "./prey_patch.js";
 import { mean } from "./utils.js";
 
+const PREY_PATCH_MARGIN = 50;
+
 export class Simulation {
     constructor(config) {
         this.config = config;
@@ -61,8 +63,8 @@ export class Simulation {
     }
     
     addPreyPatch() {
-        let x = Math.random() * this.world.width;
-        let y = Math.random() * this.world.height;
+        let x = PREY_PATCH_MARGIN + Math.random() * (this.world.width - 2 * PREY_PATCH_MARGIN);
+        let y = PREY_PATCH_MARGIN + Math.random() * (this.world.height - 2 * PREY_PATCH_MARGIN);
         let preyPatch = new PreyPatch(this, x, y);
         console.log("Created prey patch " + preyPatch.id);
         this.world.preyPatches.push(preyPatch);
@@ -127,14 +129,32 @@ export class Simulation {
             numSuccess += successObj[k].length;
         }
         
-        // If everyone is done, print averages
+        // If everyone is done, finish the simulation
         if(numSuccess >= this.world.birds.length) {
-            this.paused = true;
-            let avg = {};
-            for(let k in successObj) {
-                avg[k] = mean(successObj[k]);
-            }
-            console.log(avg);
+            this.onSimulationFinish();
         }
+    }
+    
+    onSimulationFinish() {
+        // Calculate summary statistics
+        
+        this.paused = true;
+        let avg = {};
+        for(let k in this.metrics.success) {
+            avg[k] = mean(this.metrics.success[k]);
+        }
+        console.log(avg);
+        
+        let preyPatchCount = {};
+        let preyPatchFreq = {};
+        for(let preyPatch of this.world.preyPatches) {
+            preyPatchCount["" + preyPatch.name] = preyPatch.numBirds;
+            if(!preyPatchFreq.hasOwnProperty(preyPatch.numBirds)) {
+                preyPatchFreq[preyPatch.numBirds] = 0;
+            }
+            preyPatchFreq[preyPatch.numBirds] += 1;
+        }
+        console.log(preyPatchCount);
+        console.log(preyPatchFreq);
     }
 }

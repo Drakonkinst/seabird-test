@@ -146,6 +146,7 @@ export class Graphics {
         p.strokeWeight(1);
         p.stroke(0);
         p.noFill();
+        p.textAlign(p.CENTER, p.CENTER);
 
         for(let preyPatch of this.world.preyPatches) {
             this.drawPreyPatch(preyPatch);
@@ -154,6 +155,7 @@ export class Graphics {
     
     drawPreyPatch(preyPatch) {
         p.circle(preyPatch.pos.x, preyPatch.pos.y, preyPatch.radius * 2);
+        p.text(preyPatch.name, preyPatch.pos.x, preyPatch.pos.y);
     }
     
     /* Drawing UI */
@@ -201,7 +203,7 @@ export class Graphics {
             "",
             "Position: " + bird.pos.toString(true),
             "Speed: " + Math.round(bird.velocity.magnitude() * 100) / 100,
-            "Success: " + (bird.successStep >= 0),
+            "Success: " + (bird.successStep >= 0 ? "Yes (" + bird.successStep + ")" : "No"),
             "Id: " + bird.id
         ], "botright", lines);
     }

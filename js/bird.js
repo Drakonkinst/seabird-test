@@ -82,6 +82,9 @@ export class Bird {
                     // Stop moving
                     this.velocity.setZero();
                     this.steering.reset();
+                    
+                    // Update the prey patch
+                    closestPreyPatch.onBirdArrive();
                 }
             } else {
                 // Wander normally
