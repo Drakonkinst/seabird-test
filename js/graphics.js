@@ -1,5 +1,5 @@
 import { Vector } from "./vector.js";
-import { Bird } from "./bird.js";
+import { Bird, State } from "./bird.js";
 import { toRadians } from "./utils.js";
 
 const CANVAS_MARGIN = 0.0;
@@ -55,7 +55,7 @@ const drawBird = (() => {
         
         if(config.draw.lookAhead) {
             p.stroke(Color.LOOK_AHEAD);
-            const length = bird.getMaxSpeed() * Bird.getLookAheadMultiplier();
+            const length = bird.velocity.magnitude() * Bird.getLookAheadMultiplier();
             const endX = x + length * Math.cos(theta1);
             const endY = y + length * Math.sin(theta1);
             p.line(x, y, endX, endY);
@@ -204,6 +204,7 @@ export class Graphics {
             "Max Speed: " + this.sim.getBirdInfo(bird.species).maxSpeed,
             "Sight Range: " + this.sim.getBirdInfo(bird.species).sight,
             "",
+            "State: " + State.nameOf(bird.state),
             "Position: " + bird.pos.toString(true),
             "Speed: " + Math.round(bird.velocity.magnitude() * 100) / 100,
             "Success: " + (bird.successStep >= 0 ? "Yes (" + bird.successStep + ")" : "No"),

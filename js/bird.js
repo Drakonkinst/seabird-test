@@ -30,10 +30,11 @@ export class Bird {
         this.refreshFacing();
         
         this.successStep = -1;
+        this.state = new WanderState();
     }
     
-    update(world) {
-        this.doBehavior(world);
+    update() {
+        this.doBehavior();
         this.steering.update();
         this.refreshFacing();
     }
@@ -45,9 +46,6 @@ export class Bird {
     }
     
     doBehavior() {
-        // Simple straightforward (and non-configurable) AI for now
-        // We can move this to task-based modules later
-        
         if(this.successStep > 0) {
             // Do nothing
             return;
@@ -55,47 +53,17 @@ export class Bird {
         
         let isAvoiding = this.avoidBoundaries();
         if(!isAvoiding) {
-            // Check for prey patches within sight
-            let closestPreyPatch = null;
-            let closestDistanceSq = Number.MAX_VALUE;
-            for(let preyPatch of this.sim.world.preyPatches) {
-                let minDistance = this.getSight() + preyPatch.radius;
-                if(withinDistance(this.pos, preyPatch.pos, minDistance)) {
-                    // Can see this prey patch
-                    let distSq = this.pos.distanceSquared(preyPatch.pos);
-                    if(distSq < closestDistanceSq) {
-                        // Closer than any previous
-                        closestPreyPatch = preyPatch;
-                        closestDistanceSq = distSq;
-                    }
-                }
-            }
-            
-            if(closestPreyPatch != null) {
-                // Seek with automatic slowing
-                this.steering.seek(closestPreyPatch.pos);
-                if(closestDistanceSq <= SUCCESS_DISTANCE) {
-                    // Record current simulation step
-                    this.successStep = this.sim.step;
-                    this.sim.registerSuccess(this.species, this.successStep);
-                    
-                    // Stop moving
-                    this.velocity.setZero();
-                    this.steering.reset();
-                    
-                    // Update the prey patch
-                    closestPreyPatch.onBirdArrive();
-                }
-            } else {
-                // Wander normally
-                this.steering.wander();
+            this.state = this.state.execute(this);
+            if(this.state == null) {
+                throw new Error("State transition to null");
             }
         }
     }
     
     avoidBoundaries() {
         let lookAhead = this.velocity.copy()
-            .scaleToMagnitude(this.getMaxSpeed() * LOOK_AHEAD_MULTIPLIER)
+            //.scaleToMagnitude(this.getMaxSpeed() * LOOK_AHEAD_MULTIPLIER)
+            .scale(LOOK_AHEAD_MULTIPLIER)
             .add(this.pos);
         if(!inBounds(lookAhead.x, lookAhead.y, this.sim.world)) {
             let rotationOffset = randRange(-AVOID_ANGLE, AVOID_ANGLE);
@@ -120,6 +88,16 @@ export class Bird {
             return true;
         }
         return false;
+    }
+    
+    onSuccess() {
+        // Record current simulation step
+        this.successStep = this.sim.step;
+        this.sim.registerSuccess(this.species, this.successStep);
+
+        // Stop moving
+        this.velocity.setZero();
+        this.steering.reset();
     }
     
     getMaxSpeed() {
@@ -148,5 +126,79 @@ export class Bird {
     
     static getLookAheadMultiplier() {
         return LOOK_AHEAD_MULTIPLIER;
+    }
+}
+
+export class State {
+    static nameOf(state) {
+        if(state instanceof SeekState) {
+            return "Seeking";
+        } else if(state instanceof WanderState) {
+            return "Searching";
+        } else if(state instanceof RestState) {
+            return "Resting";
+        }
+    }
+    
+    // Returns the next state (which can be itself)
+    execute(bird) {
+        
+    }
+}
+
+class SeekState extends State {
+    constructor(preyPatch) {
+        super();
+        this.target = preyPatch;
+    }
+    
+    execute(bird) {
+        bird.steering.seek(this.target.pos);
+        const distSq = bird.pos.distanceSquared(this.target.pos);
+        if(distSq <= SUCCESS_DISTANCE) {
+            bird.onSuccess();
+            this.target.onBirdArrive();
+            return new RestState();
+        }
+        return this;
+    }
+}
+
+class WanderState extends State {
+    constructor() {
+        super();
+    }
+    
+    execute(bird) {
+        bird.steering.wander();
+        
+        // Check for prey patches within sight
+        let closestPreyPatch = null;
+        let closestDistanceSq = Number.MAX_VALUE;
+        for(let preyPatch of bird.sim.world.preyPatches) {
+            let minDistance = bird.getSight() + preyPatch.radius;
+            if(withinDistance(bird.pos, preyPatch.pos, minDistance)) {
+                // Can see this prey patch
+                const distSq = bird.pos.distanceSquared(preyPatch.pos);
+                if(distSq < closestDistanceSq) {
+                    // Closer than any previous
+                    closestPreyPatch = preyPatch;
+                    closestDistanceSq = distSq;
+                }
+            }
+        }
+        
+        if(closestPreyPatch != null) {
+            return new SeekState(closestPreyPatch);
+        }
+        
+        return this;
+    }
+}
+
+class RestState extends State {
+    execute(bird) {
+        // Do nothing
+        return this;
     }
 }

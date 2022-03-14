@@ -5,9 +5,9 @@ export const Config = {
         startingZoom: -5,
         startingPos: [750, 750],
         birds: {
-            "bird1": 10,
-            "bird2": 10,
-            "bird3": 10
+            "red": 10,
+            "green": 10,
+            "magenta": 10
         },
         preyPatches: 20
     },
@@ -16,17 +16,17 @@ export const Config = {
         sight: true
     },
     birds: {
-        "bird1": {
+        "red": {
             maxSpeed: 1,
             color: "#ff0000",
             sight: 25
         },
-        "bird2": {
+        "green": {
             maxSpeed: 1.5,
             color: "#00ff00",
             sight: 25
         },
-        "bird3": {
+        "magenta": {
             maxSpeed: 1,
             color: "#ff00ff",
             sight: 50

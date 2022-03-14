@@ -14,6 +14,8 @@ export class Simulation {
         this.world = {};
         this.metrics = {};
         
+        this.stepsPerUpdate = 1;
+        
         this.onSimulationStart();
         this.setupSketch();
         this.setUpdateInterval(10);
@@ -28,8 +30,6 @@ export class Simulation {
         
         // The times when birds of each species find a prey patch
         this.metrics.success = {};
-        
-        this.stepsPerUpdate = 1;
 
         this.step = 0;
         this.paused = false;
@@ -54,7 +54,7 @@ export class Simulation {
         let x = Math.random() * this.world.width;
         let y = Math.random() * this.world.height;
         let bird = new Bird(this, type, x, y);
-        console.log("Created bird " + bird.id);
+        //console.log("Created bird " + bird.id);
         this.world.birds.push(bird);
     }
     
@@ -69,7 +69,7 @@ export class Simulation {
         let x = PREY_PATCH_MARGIN + Math.random() * (this.world.width - 2 * PREY_PATCH_MARGIN);
         let y = PREY_PATCH_MARGIN + Math.random() * (this.world.height - 2 * PREY_PATCH_MARGIN);
         let preyPatch = new PreyPatch(this, x, y);
-        console.log("Created prey patch " + preyPatch.id);
+        //console.log("Created prey patch " + preyPatch.id);
         this.world.preyPatches.push(preyPatch);
     }
     
