@@ -30,7 +30,8 @@ export class Bird {
         this.refreshFacing();
         
         this.successStep = -1;
-        this.state = new WanderState();
+        this.state = new LevyFlightState(this);
+        //this.state = new WanderState();
     }
     
     update() {
@@ -101,7 +102,7 @@ export class Bird {
     }
     
     getMaxSpeed() {
-        const value = this.sim.getBirdInfo(this.species).maxSpeed;
+        const value = this.getSpeciesInfo().maxSpeed;
         if(value == null) {
             console.warn("Maximum speed for species \"" + this.species + "\" is not defined!");
         }
@@ -109,7 +110,7 @@ export class Bird {
     }
     
     getColor() {
-        const value = this.sim.getBirdInfo(this.species).color;
+        const value = this.getSpeciesInfo().color;
         if(value == null) {
             console.warn("Color for species \"" + this.species + "\" is not defined!");
         }
@@ -117,11 +118,15 @@ export class Bird {
     }
     
     getSight() {
-        const value = this.sim.getBirdInfo(this.species).sight;
+        const value = this.getSpeciesInfo().sight;
         if(value == null) {
             console.warn("Sight for species \"" + this.species + "\" is not defined!");
         }
         return value;
+    }
+    
+    getSpeciesInfo() {
+        return this.sim.getBirdInfo(this.species);
     }
     
     static getLookAheadMultiplier() {
@@ -203,6 +208,52 @@ class WanderState extends SearchState {
     execute(bird) {
         bird.steering.wander();
         return super.execute(bird);
+    }
+}
+
+const LEVY_FLIGHT_SUCCESS_DISTANCE = 5.0;
+const MAX_ATTEMPTS = 10;
+const FRACTAL_DIMENSION = 1.4;
+const LEVY_DISTANCE_SCALING_FACTOR = 100;
+class LevyFlightState extends SearchState {
+    constructor(bird) {
+        super();
+        this.targetPos = this.chooseTargetPos(bird);
+    }
+    
+    execute(bird) {
+        let searchResultState = super.execute(bird);
+        if(searchResultState != this) {
+            // Leave search state
+            return searchResultState;
+        }
+        
+        let distSq = bird.pos.distanceSquared(this.targetPos);
+        if(distSq <= LEVY_FLIGHT_SUCCESS_DISTANCE * LEVY_FLIGHT_SUCCESS_DISTANCE) {
+            this.targetPos = this.chooseTargetPos(bird);
+        }
+        bird.steering.seek(this.targetPos);
+        return this;
+    }
+    
+    chooseTargetPos(bird) {
+        let attempts = 0;
+        let potentialTarget = null;
+        do {
+            potentialTarget = Vector.random()
+                .scale(this.randomMagnitude() * LEVY_DISTANCE_SCALING_FACTOR)
+                .add(bird.pos);
+        } while(++attempts < MAX_ATTEMPTS && !inBounds(potentialTarget.x, potentialTarget.y, bird.sim.world));
+        if(attempts >= MAX_ATTEMPTS) {
+            console.log("failed");
+        }
+        return potentialTarget;
+    }
+    
+    randomMagnitude() {
+        const x = Math.random();
+        const y = Math.pow(1 - x, -1 / FRACTAL_DIMENSION);
+        return y;
     }
 }
 

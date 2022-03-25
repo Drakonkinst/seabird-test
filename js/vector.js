@@ -24,6 +24,18 @@ export class Vector {
     static of(x, y) {
         return new Vector(x, y);
     }
+    
+    /**
+     * Creates a random unit vector by initializing a unit vector
+     * then rotating it by a random angle.
+     * 
+     * @returns A random unit vector.
+     */
+    static random() {
+        let v = new Vector(1.0, 0.0);
+        v.rotate(Math.random() * 2.0 * Math.PI);
+        return v;
+    }
 
     /**
      * Creates a copy of the vector.
