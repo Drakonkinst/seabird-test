@@ -50,3 +50,40 @@ export function mean(arr) {
     }
     return sum / arr.length;
 }
+
+// https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
+export function createCSVData(columns, dataRows) {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Add column names
+    csvContent += columns.join(',') + "\r\n";
+    
+    // Add row data
+    for(let row of dataRows) {
+        csvContent += row.join(',') + "\r\n";
+    }
+    return csvContent;
+}
+
+export function promptFileDownload(fileName, text) {
+    const encodedURI = encodeURI(text);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedURI);
+    link.setAttribute("download", fileName);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// https://stackoverflow.com/questions/44484882/download-with-current-user-time-as-filename
+export function getFormattedTime() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = today.getMonth() + 1; // JavaScript months are 0-based.
+    const d = today.getDate();
+    const h = String(today.getHours()).padStart(2, '0');
+    const mi = String(today.getMinutes()).padStart(2, '0');
+    const s = String(today.getSeconds()).padStart(2, '0');
+    return m + "-" + d + "-" + y + "-" + h + mi + s;
+}

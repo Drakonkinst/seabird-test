@@ -2,12 +2,11 @@ import { Bird } from "./bird.js";
 import { Graphics } from "./graphics.js";
 import { InputHandler } from "./input.js";
 import { PreyPatch } from "./prey_patch.js";
-import { mean } from "./utils.js";
-
-const PREY_PATCH_MARGIN = 50;
+import { createCSVData, generateRandomId, getFormattedTime, mean, promptFileDownload, randRange } from "./utils.js";
 
 export class Simulation {
     constructor(config) {
+        this.id = generateRandomId();
         this.config = config;
         this.graphics = null;
         this.input = null;
@@ -23,8 +22,8 @@ export class Simulation {
     
     onSimulationStart() {
         // Should be set by map image and pixel density later
-        this.world.width = 1500;
-        this.world.height = 1500;
+        this.world.width = this.config.world.width;
+        this.world.height = this.config.world.height;
         this.world.birds = [];
         this.world.preyPatches = [];
         
@@ -66,8 +65,9 @@ export class Simulation {
     }
     
     addPreyPatch() {
-        let x = PREY_PATCH_MARGIN + Math.random() * (this.world.width - 2 * PREY_PATCH_MARGIN);
-        let y = PREY_PATCH_MARGIN + Math.random() * (this.world.height - 2 * PREY_PATCH_MARGIN);
+        const PREY_PATCH_MARGIN = this.config.preyPatch.minDistFromBorder;
+        let x = randRange(PREY_PATCH_MARGIN, this.world.width - PREY_PATCH_MARGIN);
+        let y = randRange(PREY_PATCH_MARGIN, this.world.height - PREY_PATCH_MARGIN);
         let preyPatch = new PreyPatch(this, x, y, this.config.preyPatch.initalSize);
         //console.log("Created prey patch " + preyPatch.id);
         this.world.preyPatches.push(preyPatch);
@@ -159,6 +159,37 @@ export class Simulation {
         }
         console.log(preyPatchCount);
         console.log(preyPatchFreq);
+        
+        if(this.config.downloadResults) {
+            this.downloadSimulationResults();
+        }
+    }
+    
+    downloadSimulationResults() {
+        const columns = [
+            "simulation_id",
+            "bird_id",
+            "bird_species",
+            "success_step",
+            "prey_patch_name"
+        ];
+        const dataRows = [];
+        
+        for(let bird of this.world.birds) {
+            let data = [
+                this.id,
+                bird.id,
+                bird.species,
+                bird.successStep,
+                bird.foundPreyPatch.name
+            ];
+            dataRows.push(data);
+        }
+        
+        const fileName = "seabird_results_" + getFormattedTime() + ".csv";
+        const data = createCSVData(columns, dataRows);
+        console.log("Downloading " + fileName);
+        promptFileDownload(fileName, data);
     }
     
     resetSimulation() {

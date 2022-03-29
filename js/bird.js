@@ -2,7 +2,6 @@ import { Steering } from "./steering.js";
 import { Vector } from "./vector.js";
 import {
     generateRandomId,
-    getCardinalDirection,
     toRadians,
     inBounds,
     randRange,
@@ -15,6 +14,18 @@ const LOOK_AHEAD_MULTIPLIER = 60;
 const SUCCESS_DISTANCE = 5.0;
 
 export class Bird {
+    static getRoamingPatternState(bird) {
+        const roamingPattern = bird.getSpeciesInfo().roamingPattern;
+        switch(roamingPattern) {
+            case "wander":
+                return new WanderState();
+            case "levyFlight":
+                return new LevyFlightState(bird);
+            default:
+                console.error("Unknown roaming pattern \"" + roamingPattern + "\"");
+                return null;
+        }
+    }
     constructor(sim, species, x = 0, y = 0) {
         if(sim.getBirdInfo(species) == null) {
             throw new Error("Unknown bird species \"" + species + "\"!");
@@ -30,6 +41,7 @@ export class Bird {
         this.refreshFacing();
         
         this.successStep = -1;
+        this.foundPreyPatch = null;
         this.state = new LevyFlightState(this);
         //this.state = new WanderState();
     }
@@ -91,9 +103,10 @@ export class Bird {
         return false;
     }
     
-    onSuccess() {
+    onSuccess(preyPatch) {
         // Record current simulation step
         this.successStep = this.sim.step;
+        this.foundPreyPatch = preyPatch;
         this.sim.registerSuccess(this.species, this.successStep);
 
         // Stop moving
@@ -161,7 +174,7 @@ class SeekState extends State {
         bird.steering.seek(this.target.pos);
         const distSq = bird.pos.distanceSquared(this.target.pos);
         if(distSq <= SUCCESS_DISTANCE) {
-            bird.onSuccess();
+            bird.onSuccess(this.target);
             this.target.onBirdArrive();
             return new RestState();
         }
@@ -211,10 +224,6 @@ class WanderState extends SearchState {
     }
 }
 
-const LEVY_FLIGHT_SUCCESS_DISTANCE = 5.0;
-const MAX_ATTEMPTS = 10;
-const FRACTAL_DIMENSION = 1.4;
-const LEVY_DISTANCE_SCALING_FACTOR = 100;
 class LevyFlightState extends SearchState {
     constructor(bird) {
         super();
@@ -229,7 +238,7 @@ class LevyFlightState extends SearchState {
         }
         
         let distSq = bird.pos.distanceSquared(this.targetPos);
-        if(distSq <= LEVY_FLIGHT_SUCCESS_DISTANCE * LEVY_FLIGHT_SUCCESS_DISTANCE) {
+        if(distSq <= SUCCESS_DISTANCE * SUCCESS_DISTANCE) {
             this.targetPos = this.chooseTargetPos(bird);
         }
         bird.steering.seek(this.targetPos);
@@ -239,9 +248,13 @@ class LevyFlightState extends SearchState {
     chooseTargetPos(bird) {
         let attempts = 0;
         let potentialTarget = null;
+        const LEVY_DISTANCE_SCALING_FACTOR = bird.sim.config.levyFlight.distanceScalingFactor;
+        const FRACTAL_DIMENSION = bird.sim.config.levyFlight.fractalDimension;
+        const MAX_ATTEMPTS = bird.sim.config.levyFlight.maxAttempts;
+        
         do {
             potentialTarget = Vector.random()
-                .scale(this.randomMagnitude() * LEVY_DISTANCE_SCALING_FACTOR)
+                .scale(this.randomMagnitude(FRACTAL_DIMENSION) * LEVY_DISTANCE_SCALING_FACTOR)
                 .add(bird.pos);
         } while(++attempts < MAX_ATTEMPTS && !inBounds(potentialTarget.x, potentialTarget.y, bird.sim.world));
         if(attempts >= MAX_ATTEMPTS) {
@@ -250,9 +263,9 @@ class LevyFlightState extends SearchState {
         return potentialTarget;
     }
     
-    randomMagnitude() {
+    randomMagnitude(fractalDimension) {
         const x = Math.random();
-        const y = Math.pow(1 - x, -1 / FRACTAL_DIMENSION);
+        const y = Math.pow(1 - x, -1 / fractalDimension);
         return y;
     }
 }

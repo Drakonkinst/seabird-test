@@ -1,5 +1,5 @@
 import { Graphics } from "./graphics.js";
-import { inBounds, withinDistance } from "./utils.js";
+import { inBounds } from "./utils.js";
 
 const MAX_SELECT_DISTANCE = 75;
 
