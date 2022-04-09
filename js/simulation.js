@@ -68,7 +68,7 @@ export class Simulation {
         const PREY_PATCH_MARGIN = this.config.preyPatch.minDistFromBorder;
         let x = randRange(PREY_PATCH_MARGIN, this.world.width - PREY_PATCH_MARGIN);
         let y = randRange(PREY_PATCH_MARGIN, this.world.height - PREY_PATCH_MARGIN);
-        let preyPatch = new PreyPatch(this, x, y, this.config.preyPatch.initalSize);
+        let preyPatch = new PreyPatch(this, x, y, this.config.preyPatch.initialSize);
         //console.log("Created prey patch " + preyPatch.id);
         this.world.preyPatches.push(preyPatch);
     }

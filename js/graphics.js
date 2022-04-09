@@ -23,8 +23,7 @@ let p = null;
 let instance = null;
 
 const drawBird = (() => {
-    const SIZE = 15;
-    const HALF_SIZE = SIZE / 2;
+    const DEFAULT_SIZE = 15;
     const ANGLE = toRadians(120);
     
     return function(p, bird, config, sim) {
@@ -34,6 +33,8 @@ const drawBird = (() => {
         
         const x = bird.pos.x;
         const y = bird.pos.y;
+        const size = DEFAULT_SIZE * bird.getSpeciesInfo().sizeMultiplier;
+        const halfSize = size / 2;
         
         const isSelected = sim.selectedBird != null && bird.id == sim.selectedBird.id;
         if(isSelected) {
@@ -48,9 +49,9 @@ const drawBird = (() => {
         p.fill(bird.getColor());
         p.beginShape();
         p.vertex(x, y);
-        p.vertex(x + HALF_SIZE * Math.cos(theta2), y + HALF_SIZE * Math.sin(theta2));
-        p.vertex(x + SIZE * Math.cos(theta1), y + SIZE * Math.sin(theta1));
-        p.vertex(x + HALF_SIZE * Math.cos(theta3), y + HALF_SIZE * Math.sin(theta3));
+        p.vertex(x + halfSize * Math.cos(theta2), y + halfSize * Math.sin(theta2));
+        p.vertex(x + size * Math.cos(theta1), y + size * Math.sin(theta1));
+        p.vertex(x + halfSize * Math.cos(theta3), y + halfSize * Math.sin(theta3));
         p.endShape(p.CLOSE);
         
         if(config.draw.lookAhead) {
@@ -125,8 +126,9 @@ export class Graphics {
         p.fill(Color.OCEAN);
         p.rect(0, 0, this.world.width, this.world.height);
         
-        this.drawBirds();
         this.drawPreyPatches();
+        this.drawBirds();
+        this.drawPreyPatchesText();
         
         this.drawUI();
     }
@@ -145,16 +147,35 @@ export class Graphics {
     drawPreyPatches() {
         p.strokeWeight(1);
         p.stroke(0);
-        p.noFill();
-        p.textAlign(p.CENTER, p.CENTER);
+        
+        if(this.config.preyPatch.fillColor == "none") {
+            p.noFill();
+        } else {
+            p.fill(this.config.preyPatch.fillColor);
+        }
 
         for(let preyPatch of this.world.preyPatches) {
             this.drawPreyPatch(preyPatch);
         }
     }
     
+    drawPreyPatchesText() {
+        p.fill(0);
+        p.strokeWeight(1);
+        p.stroke(0);
+        p.textAlign(p.CENTER, p.CENTER);
+        
+        for(let preyPatch of this.world.preyPatches) {
+            this.drawPreyPatchText(preyPatch);
+        }
+    }
+    
     drawPreyPatch(preyPatch) {
+        
         p.circle(preyPatch.pos.x, preyPatch.pos.y, preyPatch.radius * 2);
+    }
+    
+    drawPreyPatchText(preyPatch) {
         p.text(preyPatch.name, preyPatch.pos.x, preyPatch.pos.y);
     }
     

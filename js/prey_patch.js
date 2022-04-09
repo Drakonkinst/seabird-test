@@ -1,13 +1,10 @@
 import { Vector } from "./vector.js";
 import { generateRandomId } from "./utils.js";
 
-//const DEFAULT_INCREASE_PER_BIRD = 5;
-const DEFAULT_RADIUS = 32;
-
 let nextName = 1;
 
 export class PreyPatch {
-    constructor(sim, x = 0, y = 0, radius = DEFAULT_RADIUS) {
+    constructor(sim, x = 0, y = 0, radius) {
         this.id = generateRandomId();
         this.name = nextName++;
         this.sim = sim;
@@ -22,6 +19,10 @@ export class PreyPatch {
     
     onBirdArrive() {
         ++this.numBirds;
-        this.radius += this.sim.config.preyPatch.increasePerBird;
+        if(this.numBirds == 1) {
+            this.radius += this.sim.config.preyPatch.time1Bonus;
+        } else {
+            this.radius += this.sim.config.preyPatch.timeNBonus;
+        }
     }
 }
