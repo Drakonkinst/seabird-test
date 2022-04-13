@@ -19,6 +19,7 @@ const Color = {
     SELECTED: "#ffd700",
     GRID: "#3A5683"
 };
+const cachedColors = {};
 
 let p = null;
 let instance = null;
@@ -133,6 +134,11 @@ export class Graphics {
         }
         
         this.drawPreyPatches();
+        
+        if(this.config.draw.heatMap) {
+            this.drawHeatMap(this.sim.metrics.heatMap);
+        }
+
         this.drawBirds();
         this.drawPreyPatchesText();
         
@@ -201,6 +207,28 @@ export class Graphics {
         }
     }
     
+    drawHeatMap(heatMap) {
+        p.noStroke();
+        const ALPHA = 100;
+        for(let y = 0; y < heatMap.sizeY; ++y) {
+            for(let x = 0; x < heatMap.sizeX; ++x) {
+                let color = heatMap.getColorAtPoint(x, y);
+                if(color != null) {
+                    if(cachedColors.hasOwnProperty(color)) {
+                        color = cachedColors[color];
+                    } else {
+                        color = p.color(color);
+                        color.setAlpha(ALPHA);
+                    }
+                    p.fill(color);
+                    let startX = x * heatMap.cellSize;
+                    let startY = y * heatMap.cellSize;
+                    p.rect(startX, startY, heatMap.cellSize, heatMap.cellSize);
+                }
+            }
+        }
+    }
+    
     /* Drawing UI */
     
     drawUI() {
@@ -234,6 +262,7 @@ export class Graphics {
             "[/]: Increase/Decrease Speed",
             "S: Toggle Sight",
             "G: Toggle Grid",
+            "H: Toggle Heatmap",
             "R: Reset Simulation",
         ], "topright", lines);
         

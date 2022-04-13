@@ -17,20 +17,33 @@ export const Config = {
             "magenta": 10
         },
         preyPatches: 5,
-        chunkSize: 100
+        
+        // Probably will move these somewhere else later
+        chunkSize: 100,         // Bird spatial hashmap chunk size
+        heatMapCellSize: 50,    // Heatmap cell size
+        heatMapColors: {        // Scale is on [0.0, 1.0]
+            "#006993": 0.0,
+            "#067898": 0.1,
+            "#0D869D": 0.2,
+            "#1395A1": 0.3,
+            "#1AA3A6": 0.4,
+            "#20B2AB": 0.5
+        },
+        heatMapInterval: 5
     },
     
     // What to draw
     draw: {
         lookAhead: true,
         sight: true,
-        chunkBorders: false
+        chunkBorders: false,
+        heatMap: true
     },
     
     // Prey patch parameters
     preyPatch: {
-        chunkSize: 200,
-        fillColor: "#FF8C42",   // Hex color or "none" to make transparent
+        chunkSize: 200,         // Prey patch spatial hashmap size
+        fillColor: "#FF8C42",    // Hex color or "none" to make transparent
         minDistFromBorder: 64,  // Minimum distance prey patches can spawn from the world border
         
         // Let P(x) = Patch size at x birds

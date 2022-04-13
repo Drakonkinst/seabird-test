@@ -1,5 +1,6 @@
-import { Bird } from "./bird.js";
+import { Bird, State } from "./bird.js";
 import { Graphics } from "./graphics.js";
+import { Heatmap } from "./heatmap.js";
 import { InputHandler } from "./input.js";
 import { PreyPatch } from "./prey_patch.js";
 import { SpatialHashMap } from "./spatial_hashmap.js";
@@ -36,6 +37,11 @@ export class Simulation {
         
         // The times when birds of each species find a prey patch
         this.metrics.success = {};
+        this.metrics.heatMap = new Heatmap(
+            this.config.world.heatMapCellSize,
+            this.world.width,
+            this.world.height,
+            this.config.world.heatMapColors);
         
         // Data
         this.data.birdMap = new SpatialHashMap(this.config.world.chunkSize);
@@ -111,6 +117,14 @@ export class Simulation {
             bird.update();
             this.updateBirdPos(bird);
         }
+        
+        if(this.step % this.config.world.heatMapInterval == 0) {
+            for(let bird of this.world.birds) {
+                if(State.nameOf(bird.state) != "Resting") {
+                    this.metrics.heatMap.apply(bird);
+                }
+            }
+        }
     }
     
     setUpdateInterval(interval) {
@@ -176,27 +190,7 @@ export class Simulation {
     }
     
     onSimulationFinish() {
-        // Calculate summary statistics
-        
         this.paused = true;
-        let avg = {};
-        for(let k in this.metrics.success) {
-            avg[k] = mean(this.metrics.success[k]);
-        }
-        console.log(avg);
-        
-        let preyPatchCount = {};
-        let preyPatchFreq = {};
-        for(let preyPatch of this.world.preyPatches) {
-            preyPatchCount[preyPatch.name] = preyPatch.numBirds;
-            if(!preyPatchFreq.hasOwnProperty(preyPatch.numBirds)) {
-                preyPatchFreq[preyPatch.numBirds] = 0;
-            }
-            preyPatchFreq[preyPatch.numBirds] += 1;
-        }
-        console.log(preyPatchCount);
-        console.log(preyPatchFreq);
-        
         if(this.config.downloadResults) {
             this.downloadSimulationResults();
         }

@@ -73,6 +73,10 @@ export class InputHandler {
                     break;
                 case 'G':
                     this.config.draw.chunkBorders = !this.config.draw.chunkBorders;
+                    break;
+                case 'H':
+                    this.config.draw.heatMap = !this.config.draw.heatMap;
+                    break;
                 default:
                     console.log(letter);
             }
