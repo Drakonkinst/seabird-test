@@ -4,11 +4,12 @@ import { generateRandomId } from "./utils.js";
 let nextName = 1;
 
 export class PreyPatch {
-    constructor(sim, x = 0, y = 0, radius) {
+    constructor(sim, x, y, radius) {
         this.id = generateRandomId();
         this.name = nextName++;
         this.sim = sim;
         this.pos = Vector.of(x, y);
+        this.initialRadius = radius;
         this.radius = radius;
         this.numBirds = 0;
     }

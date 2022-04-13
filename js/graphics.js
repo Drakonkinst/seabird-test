@@ -16,7 +16,8 @@ const Color = {
     DEEP_OCEAN: "#064273",
     LOOK_AHEAD: "#ff00ff",
     SIGHT: "#0000ff",
-    SELECTED: "#ffd700"
+    SELECTED: "#ffd700",
+    GRID: "#3A5683"
 };
 
 let p = null;
@@ -126,6 +127,11 @@ export class Graphics {
         p.fill(Color.OCEAN);
         p.rect(0, 0, this.world.width, this.world.height);
         
+        if(this.config.draw.chunkBorders) {
+            this.drawGrid(this.sim.data.birdMap.cellSize, 0.5);
+            this.drawGrid(this.sim.data.preyPatchMap.cellSize, 1.5);
+        }
+        
         this.drawPreyPatches();
         this.drawBirds();
         this.drawPreyPatchesText();
@@ -134,6 +140,7 @@ export class Graphics {
     }
     
     /* Drawing Objects */
+    
     drawBirds() {
         for(let bird of this.world.birds) {
             this.drawBird(bird);
@@ -179,7 +186,23 @@ export class Graphics {
         p.text(preyPatch.name, preyPatch.pos.x, preyPatch.pos.y);
     }
     
+    drawGrid(chunkSize, strokeWeight) {
+        p.stroke(Color.GRID);
+        p.strokeWeight(strokeWeight);
+        
+        const horizontal = Math.ceil(this.world.width / chunkSize);
+        const vertical = Math.ceil(this.world.height / chunkSize);
+
+        for(var i = 1; i < horizontal; i++) {
+            p.line(i * chunkSize, 0, i * chunkSize, this.world.width);
+        }
+        for(var j = 1; j < vertical; j++) {
+            p.line(0, j * chunkSize, this.world.width, j * chunkSize);
+        }
+    }
+    
     /* Drawing UI */
+    
     drawUI() {
         p.scale(1 / this.zoom);
         p.translate(-this.panX, -this.panY);
@@ -210,6 +233,7 @@ export class Graphics {
             "SPACE: Toggle Pause",
             "[/]: Increase/Decrease Speed",
             "S: Toggle Sight",
+            "G: Toggle Grid",
             "R: Reset Simulation",
         ], "topright", lines);
         

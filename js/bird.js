@@ -26,7 +26,7 @@ export class Bird {
                 return null;
         }
     }
-    constructor(sim, species, x = 0, y = 0) {
+    constructor(sim, species, x, y) {
         if(sim.getBirdInfo(species) == null) {
             throw new Error("Unknown bird species \"" + species + "\"!");
         }
@@ -42,6 +42,7 @@ export class Bird {
         
         this.successStep = -1;
         this.foundPreyPatch = null;
+        this.lastKey = null;
         this.state = new LevyFlightState(this);
         //this.state = new WanderState();
     }
@@ -171,9 +172,13 @@ class SeekState extends State {
     }
     
     execute(bird) {
-        bird.steering.seek(this.target.pos);
+        bird.steering.seek(this.target.pos, this.target.initialRadius);
         const distSq = bird.pos.distanceSquared(this.target.pos);
-        if(distSq <= SUCCESS_DISTANCE) {
+        // Makes visual flocking on prey patch, but may be inaccurate
+        // PREY_PATCH_SUCCESS_MARGIN = 20
+        // const successDist = Math.max(this.target.radius - PREY_PATCH_SUCCESS_MARGIN, SUCCESS_DISTANCE);
+        const successDist = this.target.initialRadius;
+        if(distSq <= successDist * successDist) {
             bird.onSuccess(this.target);
             this.target.onBirdArrive();
             return new RestState();
@@ -191,7 +196,8 @@ class SearchState extends State {
         // Check for prey patches within sight
         let closestPreyPatch = null;
         let closestDistanceSq = Number.MAX_VALUE;
-        for(let preyPatch of bird.sim.world.preyPatches) {
+        let nearbyPreyPatches = bird.sim.data.preyPatchMap.querySingle(bird.pos);
+        for(let preyPatch of nearbyPreyPatches) {
             let minDistance = bird.getSight() + preyPatch.radius;
             if(withinDistance(bird.pos, preyPatch.pos, minDistance)) {
                 // Can see this prey patch
@@ -241,7 +247,7 @@ class LevyFlightState extends SearchState {
         if(distSq <= SUCCESS_DISTANCE * SUCCESS_DISTANCE) {
             this.targetPos = this.chooseTargetPos(bird);
         }
-        bird.steering.seek(this.targetPos);
+        bird.steering.seek(this.targetPos, SUCCESS_DISTANCE);
         return this;
     }
     

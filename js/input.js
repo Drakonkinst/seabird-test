@@ -71,6 +71,8 @@ export class InputHandler {
                 case 'R':
                     this.sim.resetSimulation();
                     break;
+                case 'G':
+                    this.config.draw.chunkBorders = !this.config.draw.chunkBorders;
                 default:
                     console.log(letter);
             }

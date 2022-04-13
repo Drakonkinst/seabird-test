@@ -2,6 +2,7 @@ import { Bird } from "./bird.js";
 import { Graphics } from "./graphics.js";
 import { InputHandler } from "./input.js";
 import { PreyPatch } from "./prey_patch.js";
+import { SpatialHashMap } from "./spatial_hashmap.js";
 import { createCSVData, generateRandomId, getFormattedTime, mean, promptFileDownload, randRange } from "./utils.js";
 
 export class Simulation {
@@ -12,12 +13,18 @@ export class Simulation {
         this.input = null;
         this.world = {};
         this.metrics = {};
+        this.data = {};
         
         this.stepsPerUpdate = 1;
         
+        this.validateConfig();
         this.onSimulationStart();
         this.setupSketch();
         this.setUpdateInterval(10);
+    }
+    
+    validateConfig() {
+        
     }
     
     onSimulationStart() {
@@ -29,6 +36,10 @@ export class Simulation {
         
         // The times when birds of each species find a prey patch
         this.metrics.success = {};
+        
+        // Data
+        this.data.birdMap = new SpatialHashMap(this.config.world.chunkSize);
+        this.data.preyPatchMap = new SpatialHashMap(this.config.preyPatch.chunkSize, true);
 
         this.step = 0;
         this.paused = false;
@@ -44,37 +55,43 @@ export class Simulation {
         for(let birdType in birds) {
             let count = birds[birdType];
             for(let i = 0; i < count; ++i) {
-                this.addBird(birdType);
+                this.spawnBird(birdType);
             }
         }
     }
     
-    addBird(type) {
+    spawnBird(type) {
         let x = Math.random() * this.world.width;
         let y = Math.random() * this.world.height;
         let bird = new Bird(this, type, x, y);
         //console.log("Created bird " + bird.id);
+        this.addBird(bird);
+    }
+    
+    addBird(bird) {
         this.world.birds.push(bird);
+        this.updateBirdPos(bird);
     }
     
     spawnPreyPatches() {
         let numPreyPatches = this.config.world.preyPatches;
         for(let i = 0; i < numPreyPatches; ++i) {
-            this.addPreyPatch();
+            this.spawnPreyPatch();
         }
     }
     
-    addPreyPatch() {
+    spawnPreyPatch() {
         const PREY_PATCH_MARGIN = this.config.preyPatch.minDistFromBorder;
         let x = randRange(PREY_PATCH_MARGIN, this.world.width - PREY_PATCH_MARGIN);
         let y = randRange(PREY_PATCH_MARGIN, this.world.height - PREY_PATCH_MARGIN);
         let preyPatch = new PreyPatch(this, x, y, this.config.preyPatch.initialSize);
         //console.log("Created prey patch " + preyPatch.id);
-        this.world.preyPatches.push(preyPatch);
+        this.addPreyPatch(preyPatch);
     }
     
-    getBirdInfo(species) {
-        return this.config.birds[species];
+    addPreyPatch(preyPatch) {
+        this.world.preyPatches.push(preyPatch);
+        this.data.preyPatchMap.insert(preyPatch);
     }
     
     update() {
@@ -92,12 +109,28 @@ export class Simulation {
         
         for(let bird of this.world.birds) {
             bird.update();
+            this.updateBirdPos(bird);
         }
     }
     
     setUpdateInterval(interval) {
         let self = this;
         this.updateInterval = setInterval(() => self.update(), interval);
+    }
+    
+    updateBirdPos(bird) {
+        let currKey = this.data.birdMap.key(bird.pos);
+        if(bird.lastKey != null
+                && currKey.x == bird.lastKey.x
+                && currKey.y == bird.lastKey.y) {
+            // No need to change
+            return;
+        } else if(bird.lastKey != null) {
+            this.data.birdMap.removeAtKey(bird, bird.lastKey);
+        }
+        //console.log(bird.lastKey + " -> " + currKey);
+        this.data.birdMap.insertAtKey(bird, currKey);
+        bird.lastKey = currKey;
     }
 
     setupSketch() {
@@ -115,6 +148,10 @@ export class Simulation {
             p.mouseDragged = () => self.input.onMouseDrag();
             p.keyPressed = () => self.input.onKeyPress(event.keyCode);
         });
+    }
+    
+    getBirdInfo(species) {
+        return this.config.birds[species];
     }
     
     /* Metrics */

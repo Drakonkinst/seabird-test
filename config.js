@@ -16,17 +16,20 @@ export const Config = {
             "green": 10,
             "magenta": 10
         },
-        preyPatches: 5
+        preyPatches: 5,
+        chunkSize: 100
     },
     
     // What to draw
     draw: {
         lookAhead: true,
-        sight: true
+        sight: true,
+        chunkBorders: false
     },
     
     // Prey patch parameters
     preyPatch: {
+        chunkSize: 200,
         fillColor: "#FF8C42",   // Hex color or "none" to make transparent
         minDistFromBorder: 64,  // Minimum distance prey patches can spawn from the world border
         
@@ -71,5 +74,5 @@ export const Config = {
             roamingPattern: "levyFlight",
             sizeMultiplier: 2.0
         }
-    },
+    }
 }
