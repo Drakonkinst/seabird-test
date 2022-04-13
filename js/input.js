@@ -4,7 +4,7 @@ import { inBounds } from "./utils.js";
 const MAX_SELECT_DISTANCE = 75;
 
 const MAX_ZOOM_LEVEL = 8;
-const MIN_ZOOM_LEVEL = -8;
+const MIN_ZOOM_LEVEL = -9;
 const MAX_STEPS_PER_UPDATE = 10;
 
 const SPACEBAR = 32;
