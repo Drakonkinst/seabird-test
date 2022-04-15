@@ -6,30 +6,17 @@ export const Config = {
         //name: "World",
         //map_path: "/maps/map1.png",
         
-        width: 1500,    // World width in pixels
-        height: 1500,   // World height in pixels
+        width: 3000,    // World width in pixels
+        height: 3000,   // World height in pixels
         
-        startingZoom: -5,
-        startingPos: [750, 750],
+        startingZoom: -7,
+        startingPos: [1500, 1500],
         birds: {
-            "red": 10,
-            "green": 10,
-            "magenta": 10
+            "red": 50,
+            "green": 50,
+            "magenta": 50
         },
-        preyPatches: 5,
-        
-        // Probably will move these somewhere else later
-        chunkSize: 100,         // Bird spatial hashmap chunk size
-        heatMapCellSize: 50,    // Heatmap cell size
-        heatMapColors: {        // Scale is on [0.0, 1.0]
-            "#006993": 0.0,
-            "#067898": 0.1,
-            "#0D869D": 0.2,
-            "#1395A1": 0.3,
-            "#1AA3A6": 0.4,
-            "#20B2AB": 0.5
-        },
-        heatMapInterval: 5
+        preyPatches: 10
     },
     
     // What to draw
@@ -38,6 +25,27 @@ export const Config = {
         sight: true,
         chunkBorders: false,
         heatMap: true
+    },
+    
+    heatMap: {
+        cellSize: 50,
+        colors: {        // Scale is on [0.0, 1.0]
+            "#006993": 0.0,
+            "#067898": 0.1,
+            "#0D869D": 0.2,
+            "#1395A1": 0.3,
+            "#1AA3A6": 0.4,
+            "#20B2AB": 0.5
+        },
+        alpha: 255,
+        interval: 1
+    },
+    
+    // Levy flight parameters
+    levyFlight: {
+        maxAttempts: 10,
+        fractalDimension: 1.4,
+        distanceScalingFactor: 100
     },
     
     // Prey patch parameters
@@ -57,35 +65,39 @@ export const Config = {
         timeNBonus: 1       // P(5) = 54
     },
     
-    // Levy flight parameters
-    levyFlight: {
-        maxAttempts: 10,
-        fractalDimension: 1.4,
-        distanceScalingFactor: 100
+    bird: {
+        chunkSize: 100,         // Bird spatial hashmap chunk size
+        startingFoodMultiplier: 1.0,    // The food percent birds start at on average
+        startingFoodVariation: 0.1,     // The variation on the food percent birds start on average. 0 for no variation
+        starvationColor: "#aaaaaa",     // The color birds turn when they begin to starve
+        starvationThreshold: 0.5        // The food percent at which birds begin to turn to the starvation color. 0.0 if this never happens
     },
     
     // Bird species
-    birds: {
+    birdSpecies: {
         "red": {
             maxSpeed: 1,
             color: "#ff0000",
             sight: 25,
             roamingPattern: "levyFlight",    // Possible values: "levyFlight", "wander"
-            sizeMultiplier: 1.0
+            sizeMultiplier: 1.0,
+            foodCapacity: 20000
         },
         "green": {
             maxSpeed: 1.5,
             color: "#00ff00",
             sight: 25,
             roamingPattern: "levyFlight",
-            sizeMultiplier: 1.0
+            sizeMultiplier: 1.0,
+            foodCapacity: 20000
         },
         "magenta": {
             maxSpeed: 1,
             color: "#ff00ff",
             sight: 50,
             roamingPattern: "levyFlight",
-            sizeMultiplier: 2.0
+            sizeMultiplier: 2.0,
+            foodCapacity: 20000
         }
     }
 }

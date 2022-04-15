@@ -33,18 +33,20 @@ export class Simulation {
         this.world.width = this.config.world.width;
         this.world.height = this.config.world.height;
         this.world.birds = [];
+        this.world.deadBirds = [];
         this.world.preyPatches = [];
         
         // The times when birds of each species find a prey patch
         this.metrics.success = {};
+        this.metrics.alive = {};
         this.metrics.heatMap = new Heatmap(
-            this.config.world.heatMapCellSize,
+            this.config.heatMap.cellSize,
             this.world.width,
             this.world.height,
-            this.config.world.heatMapColors);
+            this.config.heatMap.colors);
         
         // Data
-        this.data.birdMap = new SpatialHashMap(this.config.world.chunkSize);
+        this.data.birdMap = new SpatialHashMap(this.config.bird.chunkSize);
         this.data.preyPatchMap = new SpatialHashMap(this.config.preyPatch.chunkSize, true);
 
         this.step = 0;
@@ -77,6 +79,21 @@ export class Simulation {
     addBird(bird) {
         this.world.birds.push(bird);
         this.updateBirdPos(bird);
+        
+        if(!this.metrics.alive.hasOwnProperty(bird.species)) {
+            this.metrics.alive[bird.species] = 0;
+        }
+        ++this.metrics.alive[bird.species];
+    }
+    
+    removeBird(bird) {
+        // Assumed to be already removed from this.world.birds
+        if(bird.lastKey != null) {
+            this.data.birdMap.removeAtKey(bird, bird.lastKey);
+        }
+        --this.metrics.alive[bird.species];
+        this.world.deadBirds.push(bird);
+        this.checkSimulationFinish();
     }
     
     spawnPreyPatches() {
@@ -113,12 +130,18 @@ export class Simulation {
     doStep() {
         ++this.step;
         
-        for(let bird of this.world.birds) {
-            bird.update();
-            this.updateBirdPos(bird);
+        for(let i = this.world.birds.length - 1; i >= 0; --i) {
+            let bird = this.world.birds[i];
+            if(bird.alive) {
+                bird.update();
+                this.updateBirdPos(bird);
+            } else {
+                this.world.birds.splice(i, 1);
+                this.removeBird(bird);
+            }
         }
         
-        if(this.step % this.config.world.heatMapInterval == 0) {
+        if(this.step % this.config.heatMap.interval == 0) {
             for(let bird of this.world.birds) {
                 if(State.nameOf(bird.state) != "Resting") {
                     this.metrics.heatMap.apply(bird);
@@ -165,20 +188,25 @@ export class Simulation {
     }
     
     getBirdInfo(species) {
-        return this.config.birds[species];
+        return this.config.birdSpecies[species];
     }
     
     /* Metrics */
     
     registerSuccess(species, step) {
-        let successObj = this.metrics.success;
+        const successObj = this.metrics.success;
         if(!successObj.hasOwnProperty(species)) {
             successObj[species] = [];
         }
         successObj[species].push(step);
         
+        this.checkSimulationFinish();
+    }
+    
+    checkSimulationFinish() {
         // Count num successes
         let numSuccess = 0;
+        const successObj = this.metrics.success;
         for(let k in successObj) {
             numSuccess += successObj[k].length;
         }
@@ -213,6 +241,17 @@ export class Simulation {
                 bird.species,
                 bird.successStep,
                 bird.foundPreyPatch.name
+            ];
+            dataRows.push(data);
+        }
+        
+        for(let bird of this.world.deadBirds) {
+            let data = [
+                this.id,
+                bird.id,
+                bird.species,
+                bird.successStep,
+                null
             ];
             dataRows.push(data);
         }

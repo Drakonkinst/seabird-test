@@ -44,7 +44,16 @@ export class Bird {
         this.foundPreyPatch = null;
         this.lastKey = null;
         this.state = new LevyFlightState(this);
+        this.food = this.calculateStartingFood();
+        this.alive = true;
         //this.state = new WanderState();
+    }
+    
+    calculateStartingFood() {
+        const base = this.sim.config.bird.startingFoodMultiplier;
+        const offset = this.sim.config.bird.startingFoodVariation;
+        const multiplier = Math.min(randRange(base - offset, base + offset), 1.0);
+        return Math.floor(this.getSpeciesInfo().foodCapacity * multiplier);
     }
     
     update() {
@@ -71,6 +80,11 @@ export class Bird {
             if(this.state == null) {
                 throw new Error("State transition to null");
             }
+        }
+        
+        if(--this.food <= 0) {
+            // Bird is dead
+            this.alive = false;
         }
     }
     
@@ -143,6 +157,10 @@ export class Bird {
         return this.sim.getBirdInfo(this.species);
     }
     
+    getFoodPercent() {
+        return this.food / this.getSpeciesInfo().foodCapacity;
+    }
+    
     static getLookAheadMultiplier() {
         return LOOK_AHEAD_MULTIPLIER;
     }
@@ -180,7 +198,7 @@ class SeekState extends State {
         const successDist = this.target.initialRadius;
         if(distSq <= successDist * successDist) {
             bird.onSuccess(this.target);
-            this.target.onBirdArrive();
+            this.target.onBirdArrive(bird);
             return new RestState();
         }
         return this;

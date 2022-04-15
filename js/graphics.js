@@ -47,8 +47,14 @@ const drawBird = (() => {
             p.stroke(0);
         }
         
+        if(bird.getFoodPercent() > config.bird.starvationThreshold) {
+            p.fill(bird.getColor());
+        } else {
+            let progress = bird.getFoodPercent() / config.bird.starvationThreshold;
+            let fillColor = p.lerpColor(p.color(config.bird.starvationColor), p.color(bird.getColor()), progress);
+            p.fill(fillColor);
+        }
         
-        p.fill(bird.getColor());
         p.beginShape();
         p.vertex(x, y);
         p.vertex(x + halfSize * Math.cos(theta2), y + halfSize * Math.sin(theta2));
@@ -127,6 +133,10 @@ export class Graphics {
         p.background(Color.DEEP_OCEAN);
         p.fill(Color.OCEAN);
         p.rect(0, 0, this.world.width, this.world.height);
+
+        if(this.config.draw.heatMap) {
+            this.drawHeatMap(this.sim.metrics.heatMap);
+        }
         
         if(this.config.draw.chunkBorders) {
             this.drawGrid(this.sim.data.birdMap.cellSize, 0.5);
@@ -134,10 +144,6 @@ export class Graphics {
         }
         
         this.drawPreyPatches();
-        
-        if(this.config.draw.heatMap) {
-            this.drawHeatMap(this.sim.metrics.heatMap);
-        }
 
         this.drawBirds();
         this.drawPreyPatchesText();
@@ -209,7 +215,6 @@ export class Graphics {
     
     drawHeatMap(heatMap) {
         p.noStroke();
-        const ALPHA = 100;
         for(let y = 0; y < heatMap.sizeY; ++y) {
             for(let x = 0; x < heatMap.sizeX; ++x) {
                 let color = heatMap.getColorAtPoint(x, y);
@@ -218,7 +223,7 @@ export class Graphics {
                         color = cachedColors[color];
                     } else {
                         color = p.color(color);
-                        color.setAlpha(ALPHA);
+                        color.setAlpha(this.config.heatMap.alpha);
                     }
                     p.fill(color);
                     let startX = x * heatMap.cellSize;
@@ -250,6 +255,13 @@ export class Graphics {
         this.writeText("Simulation Step: " + this.sim.step, "topleft", lines);
         this.writeText("Paused: " + (this.sim.paused ? "Yes" : "No"), "topleft", lines);
         this.writeText("Speed: " + this.sim.stepsPerUpdate, "topleft", lines);
+        this.writeText("FPS: " + Math.round(p.frameRate()), "topleft", lines);
+        this.writeText("", "topleft", lines);
+        for(let k in this.sim.metrics.alive) {
+            if(this.sim.metrics.alive.hasOwnProperty(k)) {
+                this.writeText(k + ": " + this.sim.metrics.alive[k], "topleft", lines);
+            }
+        }
         
         // Bottom left: Mouse Info
         this.writeText("Mouse Position: " + this.getMousePos().toString(true), "botleft", lines);
@@ -268,33 +280,39 @@ export class Graphics {
         
         // Bottom right: Target Info
         if(this.sim.selectedBird != null) {
-            this.writeBirdInfo(this.sim.selectedBird, lines);
+            if(this.sim.selectedBird.alive) {
+                this.writeBirdInfo(this.sim.selectedBird, lines);   
+            } else {
+                this.sim.selectedBird = null;
+            }
+            
         }
     }
     
     writeBirdInfo(bird, lines) {
         this.writeText([
             "Species: " + bird.species,
-            "Max Speed: " + this.sim.getBirdInfo(bird.species).maxSpeed,
-            "Sight Range: " + this.sim.getBirdInfo(bird.species).sight,
+            "Max Speed: " + bird.getSpeciesInfo().maxSpeed,
+            "Sight Range: " + bird.getSpeciesInfo().sight,
             "",
             "State: " + State.nameOf(bird.state),
             "Position: " + bird.pos.toString(true),
             "Speed: " + Math.round(bird.velocity.magnitude() * 100) / 100,
+            "Food: " + bird.food + "/" + bird.getSpeciesInfo().foodCapacity,
             "Success: " + (bird.successStep >= 0 ? "Yes (" + bird.successStep + ")" : "No"),
             "Id: " + bird.id
-        ], "botright", lines);
+        ], "botright", lines);  
     }
     
     writeText(text, corner, lines) {
         if(Array.isArray(text)) {
             if(corner == "botleft" || corner == "botright") {
                 for(let i = text.length - 1; i >= 0; --i) {
-                    this.writeText(text[i], corner, lines);
+                    this.writeText(text[i], corner, lines); 
                 }
             } else {
                 for(let i = 0; i < text.length; ++i) {
-                    this.writeText(text[i], corner, lines);
+                    this.writeText(text[i], corner, lines); 
                 }
             }
             
@@ -305,15 +323,15 @@ export class Graphics {
         let y = null;
         
         if(corner == "topleft") {
-            p.textAlign(p.LEFT);
+            p.textAlign(p.LEFT);    
             x = TEXT_PADDING_X;
             y = TEXT_PADDING_Y + TEXT_HEIGHT * lines["topleft"]; 
         } else if(corner == "botleft") {
-            p.textAlign(p.LEFT);
+            p.textAlign(p.LEFT);    
             x = TEXT_PADDING_X;
             y = p.windowHeight - TEXT_PADDING_Y - TEXT_HEIGHT * lines["botleft"];
         } else if(corner == "topright") {
-            p.textAlign(p.RIGHT);
+            p.textAlign(p.RIGHT);   
             x = p.windowWidth - TEXT_PADDING_X;
             y = TEXT_PADDING_Y + TEXT_HEIGHT * lines["topright"]; 
         } else if(corner == "botright") {

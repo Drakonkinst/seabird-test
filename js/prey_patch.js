@@ -11,19 +11,27 @@ export class PreyPatch {
         this.pos = Vector.of(x, y);
         this.initialRadius = radius;
         this.radius = radius;
-        this.numBirds = 0;
+        // this.food = 
+        this.birds = [];
     }
-    
+
     static resetNames() {
         nextName = 1;
     }
-    
-    onBirdArrive() {
-        ++this.numBirds;
-        if(this.numBirds == 1) {
-            this.radius += this.sim.config.preyPatch.time1Bonus;
+
+    onBirdArrive(bird) {
+        this.birds.push(bird);
+        this.radius = this.recalculateRadius();
+    }
+
+    recalculateRadius() {
+        let numBirds = this.birds.length;
+        if(numBirds > 1) {
+            return this.initialRadius + this.sim.config.preyPatch.time1Bonus + (numBirds - 1) * this.sim.config.preyPatch.timeNBonus;
+        } else if(numBirds == 1) {
+            return this.initialRadius + this.sim.config.preyPatch.time1Bonus;
         } else {
-            this.radius += this.sim.config.preyPatch.timeNBonus;
+            return this.initialRadius;
         }
     }
 }
