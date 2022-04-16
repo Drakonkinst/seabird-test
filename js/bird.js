@@ -91,9 +91,9 @@ export class Bird {
     avoidBoundaries() {
         let lookAhead = this.velocity.copy()
             //.scaleToMagnitude(this.getMaxSpeed() * LOOK_AHEAD_MULTIPLIER)
-            .scale(LOOK_AHEAD_MULTIPLIER)
+            .scale(this.getMaxSpeed() * this.getLookAheadMultiplier())
             .add(this.pos);
-        if(!inBounds(lookAhead.x, lookAhead.y, this.sim.world)) {
+        if(!this.sim.isValidPos(lookAhead.x, lookAhead.y)) {
             let rotationOffset = randRange(-AVOID_ANGLE, AVOID_ANGLE);
             /*
             // Set direction away from boundary instantly
@@ -161,8 +161,8 @@ export class Bird {
         return this.food / this.getSpeciesInfo().foodCapacity;
     }
     
-    static getLookAheadMultiplier() {
-        return LOOK_AHEAD_MULTIPLIER;
+    getLookAheadMultiplier() {
+        return LOOK_AHEAD_MULTIPLIER * this.getSpeciesInfo().avoidDistanceMultiplier;
     }
 }
 
@@ -280,9 +280,13 @@ class LevyFlightState extends SearchState {
             potentialTarget = Vector.random()
                 .scale(this.randomMagnitude(FRACTAL_DIMENSION) * LEVY_DISTANCE_SCALING_FACTOR)
                 .add(bird.pos);
-        } while(++attempts < MAX_ATTEMPTS && !inBounds(potentialTarget.x, potentialTarget.y, bird.sim.world));
+        } while(++attempts < MAX_ATTEMPTS && !bird.sim.isValidArea(potentialTarget.x, potentialTarget.y, bird.getLookAheadMultiplier() * bird.getMaxSpeed()));
         if(attempts >= MAX_ATTEMPTS) {
             console.log("failed");
+            if(this.targetPos == null) {
+                return this.chooseTargetPos(bird);
+            }
+            return this.targetPos;
         }
         return potentialTarget;
     }

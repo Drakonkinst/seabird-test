@@ -2,12 +2,17 @@ import { Bird, State } from "./bird.js";
 import { Graphics } from "./graphics.js";
 import { Heatmap } from "./heatmap.js";
 import { InputHandler } from "./input.js";
+import { ImageHandler } from "./image_handler.js"
 import { PreyPatch } from "./prey_patch.js";
 import { SpatialHashMap } from "./spatial_hashmap.js";
-import { createCSVData, generateRandomId, getFormattedTime, mean, promptFileDownload, randRange } from "./utils.js";
+import { createCSVData, generateRandomId, getFormattedTime, inBounds, mean, promptFileDownload, randRange } from "./utils.js";
+
+const MAX_SPAWN_ATTEMPTS = 10;
+const RAD_2 = Math.sqrt(2);
 
 export class Simulation {
     constructor(config) {
+        let self = this;
         this.id = generateRandomId();
         this.config = config;
         this.graphics = null;
@@ -19,19 +24,33 @@ export class Simulation {
         this.stepsPerUpdate = 1;
         
         this.validateConfig();
-        this.onSimulationStart();
-        this.setupSketch();
-        this.setUpdateInterval(10);
+        this.startSimulation(() => {
+            self.setupSketch();
+            self.setUpdateInterval(10);
+        });
     }
     
     validateConfig() {
         
     }
     
-    onSimulationStart() {
+    startSimulation(callback) {
+        let self = this;
+        if(this.mapImage == null) {
+            this.mapImage = new ImageHandler(
+                this.config.world.mapPath,
+                this.config.world.unitsPerPixel,
+                () => self.onSimulationStart(callback),
+                this.config.world.legend);
+        } else {
+            self.onSimulationStart(callback);
+        }
+    }
+    
+    onSimulationStart(callback = () => {}) {
         // Should be set by map image and pixel density later
-        this.world.width = this.config.world.width;
-        this.world.height = this.config.world.height;
+        this.world.width = this.mapImage.worldWidth;
+        this.world.height = this.mapImage.worldHeight;
         this.world.birds = [];
         this.world.deadBirds = [];
         this.world.preyPatches = [];
@@ -56,6 +75,7 @@ export class Simulation {
         PreyPatch.resetNames();
         this.spawnPreyPatches();
         this.spawnBirds();
+        callback();
     }
     
     spawnBirds() {
@@ -71,6 +91,16 @@ export class Simulation {
     spawnBird(type) {
         let x = Math.random() * this.world.width;
         let y = Math.random() * this.world.height;
+
+        let attempts = 0;
+        while(!this.isValidPos(x, y) && ++attempts < MAX_SPAWN_ATTEMPTS) {
+            x = Math.random() * this.world.width;
+            y = Math.random() * this.world.height;
+        }
+        if(attempts >= MAX_SPAWN_ATTEMPTS) {
+            // Invalid spawn
+            return;
+        }
         let bird = new Bird(this, type, x, y);
         //console.log("Created bird " + bird.id);
         this.addBird(bird);
@@ -105,8 +135,18 @@ export class Simulation {
     
     spawnPreyPatch() {
         const PREY_PATCH_MARGIN = this.config.preyPatch.minDistFromBorder;
-        let x = randRange(PREY_PATCH_MARGIN, this.world.width - PREY_PATCH_MARGIN);
-        let y = randRange(PREY_PATCH_MARGIN, this.world.height - PREY_PATCH_MARGIN);
+        let x = Math.random() * this.world.width;
+        let y = Math.random() * this.world.height;
+        
+        let attempts = 0;
+        while(++attempts < MAX_SPAWN_ATTEMPTS && !this.isValidArea(x, y, PREY_PATCH_MARGIN)) {
+            x = Math.random() * this.world.width;
+            y = Math.random() * this.world.height;
+        }
+        if(attempts >= MAX_SPAWN_ATTEMPTS) {
+            // Invalid spawn
+            return;
+        }
         let preyPatch = new PreyPatch(this, x, y, this.config.preyPatch.initialSize);
         //console.log("Created prey patch " + preyPatch.id);
         this.addPreyPatch(preyPatch);
@@ -187,6 +227,23 @@ export class Simulation {
         });
     }
     
+    isValidPos(x, y) {
+        const region = this.mapImage.getRegionAtPoint(x, y);
+        return inBounds(x, y, this.world) && region != null && region != "land";
+    }
+
+    isValidArea(x, y, radius) {
+        return this.isValidPos(x, y)
+            && this.isValidPos(x + radius, y)
+            && this.isValidPos(x - radius, y)
+            && this.isValidPos(x, y + radius)
+            && this.isValidPos(x, y - radius)
+            && this.isValidPos(x + radius * RAD_2, y + radius * RAD_2)
+            && this.isValidPos(x - radius * RAD_2, y + radius * RAD_2)
+            && this.isValidPos(x + radius * RAD_2, y - radius * RAD_2)
+            && this.isValidPos(x - radius * RAD_2, y - radius * RAD_2);
+    }
+    
     getBirdInfo(species) {
         return this.config.birdSpecies[species];
     }
@@ -263,6 +320,6 @@ export class Simulation {
     }
     
     resetSimulation() {
-        this.onSimulationStart();
+        this.startSimulation();
     }
 }

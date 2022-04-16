@@ -3,9 +3,9 @@ import { inBounds } from "./utils.js";
 
 const MAX_SELECT_DISTANCE = 75;
 
-const MAX_ZOOM_LEVEL = 8;
-const MIN_ZOOM_LEVEL = -9;
-const MAX_STEPS_PER_UPDATE = 10;
+const MAX_ZOOM_LEVEL = 20;
+const MIN_ZOOM_LEVEL = -16;
+const MAX_STEPS_PER_UPDATE = 50;
 
 const SPACEBAR = 32;
 const LEFT_BRACKET = 219;
@@ -41,7 +41,7 @@ export class InputHandler {
             case RIGHT_BRACKET:
                 // Increase updates per step
                 if(shiftEnabled) {
-                    this.sim.stepsPerUpdate = MAX_STEPS_PER_UPDATE;
+                    this.sim.stepsPerUpdate = Math.min(this.sim.stepsPerUpdate + 10, MAX_STEPS_PER_UPDATE);
                 } else if(this.sim.stepsPerUpdate < MAX_STEPS_PER_UPDATE) {
                     this.sim.stepsPerUpdate += 1;
                 }
@@ -49,7 +49,7 @@ export class InputHandler {
             case LEFT_BRACKET:
                 // Decrease updates per step
                 if(shiftEnabled) {
-                    this.sim.stepsPerUpdate = 1;
+                    this.sim.stepsPerUpdate = Math.max(1, this.sim.stepsPerUpdate - 10);
                 } else if(this.sim.stepsPerUpdate > 1) {
                     this.sim.stepsPerUpdate -= 1;
                 }

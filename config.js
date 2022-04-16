@@ -4,10 +4,14 @@ export const Config = {
     // World setup parameters
     world: {
         //name: "World",
-        //map_path: "/maps/map1.png",
-        
-        width: 3000,    // World width in pixels
-        height: 3000,   // World height in pixels
+        mapPath: "./map.png",
+        unitsPerPixel: 100,
+        // Must match all hex colors used in the image
+        legend: {
+            "#003466": "deep_ocean",
+            "#2758a5": "ocean",
+            "#61af60": "land"
+        },
         
         startingZoom: -7,
         startingPos: [1500, 1500],
@@ -24,20 +28,20 @@ export const Config = {
         lookAhead: true,
         sight: true,
         chunkBorders: false,
-        heatMap: true
+        heatMap: false
     },
     
     heatMap: {
         cellSize: 50,
         colors: {        // Scale is on [0.0, 1.0]
-            "#006993": 0.0,
-            "#067898": 0.1,
-            "#0D869D": 0.2,
-            "#1395A1": 0.3,
-            "#1AA3A6": 0.4,
-            "#20B2AB": 0.5
+            "#003466": 0.0,
+            "#164977": 0.15,
+            "#305f8b": 0.30,
+            "#45769c": 0.45,
+            "#5e8cac": 0.60,
+            "#75a2bf": 0.75
         },
-        alpha: 255,
+        alpha: 175, // 255 for full opacity. Lower opacity leads to significant performance decrease
         interval: 1
     },
     
@@ -81,6 +85,7 @@ export const Config = {
             sight: 25,
             roamingPattern: "levyFlight",    // Possible values: "levyFlight", "wander"
             sizeMultiplier: 1.0,
+            avoidDistanceMultiplier: 2.0,
             foodCapacity: 20000
         },
         "green": {
@@ -89,6 +94,7 @@ export const Config = {
             sight: 25,
             roamingPattern: "levyFlight",
             sizeMultiplier: 1.0,
+            avoidDistanceMultiplier: 2.0,
             foodCapacity: 20000
         },
         "magenta": {
@@ -97,6 +103,7 @@ export const Config = {
             sight: 50,
             roamingPattern: "levyFlight",
             sizeMultiplier: 2.0,
+            avoidDistanceMultiplier: 2.0,
             foodCapacity: 20000
         }
     }

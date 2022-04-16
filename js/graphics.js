@@ -4,7 +4,7 @@ import { toRadians } from "./utils.js";
 
 const CANVAS_MARGIN = 0.0;
 const CANVAS_RATIO = 1.0 - CANVAS_MARGIN * 2.0;
-const ZOOM_FACTOR = 0.1;
+const ZOOM_FACTOR = 0.05;
 
 const TEXT_PADDING_X = 10;
 const TEXT_PADDING_Y = 16;
@@ -12,10 +12,12 @@ const TEXT_HEIGHT = 18;
 const TEXT_SIZE = 16;
 
 const Color = {
-    OCEAN: "#1da2d8",
-    DEEP_OCEAN: "#064273",
-    LOOK_AHEAD: "#ff00ff",
-    SIGHT: "#0000ff",
+    OCEAN: "#2758a5",
+    BACKGROUND: "#1C0B19",
+    DEEP_OCEAN: "#003466",
+    LAND: "#61af60",
+    LOOK_AHEAD: "#FF6961",
+    SIGHT: "#bde0ff",
     SELECTED: "#ffd700",
     GRID: "#3A5683"
 };
@@ -64,7 +66,7 @@ const drawBird = (() => {
         
         if(config.draw.lookAhead) {
             p.stroke(Color.LOOK_AHEAD);
-            const length = bird.velocity.magnitude() * Bird.getLookAheadMultiplier();
+            const length = bird.getMaxSpeed() * bird.getLookAheadMultiplier();
             const endX = x + length * Math.cos(theta1);
             const endY = y + length * Math.sin(theta1);
             p.line(x, y, endX, endY);
@@ -76,6 +78,14 @@ const drawBird = (() => {
             const sight = bird.getSight();
             p.circle(x, y, sight * 2);
         }
+        
+        ///*
+        // Show target pos when searching in levy flight
+        if(isSelected && State.nameOf(bird.state) == "Searching") {
+            p.stroke("red");
+            p.line(bird.pos.x, bird.pos.y, bird.state.targetPos.x, bird.state.targetPos.y);
+        }
+        //*/
     };
 })();
 
@@ -106,6 +116,8 @@ export class Graphics {
             let posData = this.config.world.startingPos;
             this.panTo(posData[0], posData[1]);
         }
+        
+        this.mapImage = p.loadImage(this.config.world.mapPath);
 
     }
     
@@ -130,9 +142,8 @@ export class Graphics {
         p.translate(this.panX, this.panY);
         p.clear();
         p.scale(this.zoom);
-        p.background(Color.DEEP_OCEAN);
-        p.fill(Color.OCEAN);
-        p.rect(0, 0, this.world.width, this.world.height);
+        p.background(Color.BACKGROUND);
+        this.drawMap();
 
         if(this.config.draw.heatMap) {
             this.drawHeatMap(this.sim.metrics.heatMap);
@@ -214,7 +225,6 @@ export class Graphics {
     }
     
     drawHeatMap(heatMap) {
-        p.noStroke();
         for(let y = 0; y < heatMap.sizeY; ++y) {
             for(let x = 0; x < heatMap.sizeX; ++x) {
                 let color = heatMap.getColorAtPoint(x, y);
@@ -225,6 +235,7 @@ export class Graphics {
                         color = p.color(color);
                         color.setAlpha(this.config.heatMap.alpha);
                     }
+                    p.stroke(color);
                     p.fill(color);
                     let startX = x * heatMap.cellSize;
                     let startY = y * heatMap.cellSize;
@@ -232,6 +243,10 @@ export class Graphics {
                 }
             }
         }
+    }
+    
+    drawMap() {
+        p.image(this.mapImage, 0, 0, this.sim.mapImage.worldWidth, this.sim.mapImage.worldHeight);
     }
     
     /* Drawing UI */
@@ -267,6 +282,7 @@ export class Graphics {
         this.writeText("Mouse Position: " + this.getMousePos().toString(true), "botleft", lines);
         this.writeText("Pan: (" + Math.round(-this.panX) + ", " + Math.round(-this.panY) + ")", "botleft", lines);
         this.writeText("Zoom: " + this.zoomLevel, "botleft", lines);
+        this.writeText("Region: " + this.sim.mapImage.getRegionAtPos(this.getMousePos()), "botleft", lines);
         
         // Top right: Controls
         this.writeText([
