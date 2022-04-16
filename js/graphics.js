@@ -19,7 +19,7 @@ const Color = {
     LOOK_AHEAD: "#FF6961",
     SIGHT: "#bde0ff",
     SELECTED: "#ffd700",
-    GRID: "#3A5683"
+    GRID: "#5A76a3"
 };
 const cachedColors = {};
 
