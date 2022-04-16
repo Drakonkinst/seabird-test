@@ -41,6 +41,14 @@ const drawBird = (() => {
         const halfSize = size / 2;
         
         const isSelected = sim.selectedBird != null && bird.id == sim.selectedBird.id;
+        
+        // Show target pos when searching in levy flight
+        if(isSelected && State.nameOf(bird.state) == "Searching" && bird.state.targetPos != null) {
+            p.stroke("red");
+            p.strokeWeight(2.0)
+            p.line(bird.pos.x, bird.pos.y, bird.state.targetPos.x, bird.state.targetPos.y);
+        }
+        
         if(isSelected) {
             p.strokeWeight(1);
             p.stroke(Color.SELECTED);
@@ -78,14 +86,6 @@ const drawBird = (() => {
             const sight = bird.getSight();
             p.circle(x, y, sight * 2);
         }
-        
-        ///*
-        // Show target pos when searching in levy flight
-        if(isSelected && State.nameOf(bird.state) == "Searching") {
-            p.stroke("red");
-            p.line(bird.pos.x, bird.pos.y, bird.state.targetPos.x, bird.state.targetPos.y);
-        }
-        //*/
     };
 })();
 

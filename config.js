@@ -25,8 +25,8 @@ export const Config = {
     
     // What to draw
     draw: {
-        lookAhead: true,
-        sight: true,
+        lookAhead: false,
+        sight: false,
         chunkBorders: false,
         heatMap: false
     },
