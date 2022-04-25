@@ -1,6 +1,4 @@
-// https://stackoverflow.com/questions/35466604/convert-hexadecimal-color-to-integer-in-javascript
 export function hexToInt(hexColor) {
-    //var bbggrr = hexColor.substring(5, 7) + hexColor.substring(3, 5) + hexColor.substr(1, 3);
     return parseInt(hexColor.substring(1), 16);
 }
 
