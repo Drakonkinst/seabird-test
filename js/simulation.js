@@ -5,6 +5,7 @@ import { InputHandler } from "./input.js";
 import { ImageHandler } from "./image_handler.js"
 import { PreyPatch } from "./prey_patch.js";
 import { SpatialHashMap } from "./spatial_hashmap.js";
+import { DensityMap } from "./densitymap.js";
 import { createCSVData, generateRandomId, getFormattedTime, inBounds, mean, promptFileDownload, randRange } from "./utils.js";
 
 const MAX_SPAWN_ATTEMPTS = 10;
@@ -40,7 +41,10 @@ export class Simulation {
             this.mapImage = new ImageHandler(
                 this.config.world.mapPath,
                 this.config.world.unitsPerPixel,
-                () => self.onSimulationStart(callback),
+                () => {
+                    self.data.densityMap = new DensityMap(self.mapImage, self.config.preyPatch.ridgeDistance, self.config.preyPatch.ridgeWeight, self.config.world.unitsPerPixel);
+                    self.onSimulationStart(callback);
+                },
                 this.config.world.legend);
         } else {
             self.onSimulationStart(callback);
@@ -134,6 +138,7 @@ export class Simulation {
     }
     
     spawnPreyPatch() {
+        /*
         const PREY_PATCH_MARGIN = this.config.preyPatch.minDistFromBorder;
         let x = Math.random() * this.world.width;
         let y = Math.random() * this.world.height;
@@ -146,9 +151,11 @@ export class Simulation {
         if(attempts >= MAX_SPAWN_ATTEMPTS) {
             // Invalid spawn
             return;
-        }
+        }*/
+        let point = this.data.densityMap.randomPoint();
+        let x = point[0];
+        let y = point[1];
         let preyPatch = new PreyPatch(this, x, y, this.config.preyPatch.initialSize);
-        //console.log("Created prey patch " + preyPatch.id);
         this.addPreyPatch(preyPatch);
     }
     

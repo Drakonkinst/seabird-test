@@ -1,8 +1,8 @@
-export function hexToInt(hexColor) {
+function hexToInt(hexColor) {
     return parseInt(hexColor.substring(1), 16);
 }
 
-export function intToHex(i) {
+function intToHex(i) {
     let bbggrr = ("000000" + i.toString(16)).slice(-6);
     let rrggbb = bbggrr.substr(4, 2) + bbggrr.substr(2, 2) + bbggrr.substr(0, 2);
     return "#" + rrggbb;
@@ -64,6 +64,10 @@ export class ImageHandler {
             return null;
         }
         const index = mapY * this.imgWidth + mapX;
+        return this.getRegionAtIndex(index);
+    }
+    
+    getRegionAtIndex(index) {
         const color = this.colorData[index];
         if(this.legend.hasOwnProperty(color)) {
             return this.legend[color];

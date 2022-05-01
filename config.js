@@ -57,6 +57,8 @@ export const Config = {
         chunkSize: 200,         // Prey patch spatial hashmap size
         fillColor: "#FF8C42",    // Hex color or "none" to make transparent
         minDistFromBorder: 64,  // Minimum distance prey patches can spawn from the world border
+        ridgeWeight: 50,
+        ridgeDistance: 500,
         
         // Let P(x) = Patch size at x birds
         // P(0) = initialSize
